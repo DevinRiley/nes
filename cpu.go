@@ -101,6 +101,8 @@ func context(cpu *CPU, opcode byte) *InstructionContext {
 		if (address & 0x00FF) < uint16(cpu.Y) {
 			pageCrossed = true
 		}
+	} else if mode == Relative {
+		address = cpu.PC + 1
 	} else {
 		// WIP: garbage value for now, later this should probably be a switch statement
 		// and blow up if we don't know the addressing mode
