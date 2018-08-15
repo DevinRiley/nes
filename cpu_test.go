@@ -4,6 +4,58 @@ import (
 	"testing"
 )
 
+func TestNewCPUSetsSP(t *testing.T) {
+	cpu := NewCPU()
+	if cpu.SP != 0xFF {
+		t.Error("Stack Pointer not correctly initialized, got", cpu.SP)
+	}
+}
+
+func TestStackPush(t *testing.T) {
+	cpu := NewCPU()
+	cpu.stackPush(0x17)
+
+	if cpu.Memory[0x1FF] != 0x17 {
+		t.Error("did not add expected value to top of stack")
+	}
+
+	if cpu.SP != 0xFE {
+		t.Error("did not decrement stack pointer")
+	}
+}
+
+func TestStackPop(t *testing.T) {
+	cpu := NewCPU()
+	cpu.SP = 0xFD
+	cpu.Memory[0x1FE] = 0x50
+	result := cpu.stackPop()
+
+	if result != 0x50 {
+		t.Error("did not return expected value, got", result)
+	}
+
+	if cpu.SP != 0xFE {
+		t.Error("did not increment stack pointer")
+	}
+}
+
+func TestFlagsToByte(t *testing.T) {
+	cpu := NewCPU()
+	cpu.NFlag = false
+	cpu.VFlag = true
+	cpu.UFlag = false
+	cpu.BFlag = true
+	cpu.DFlag = false
+	cpu.IFlag = true
+	cpu.ZFlag = false
+	cpu.CFlag = true
+	result := cpu.flagsToByte()
+
+	if result != 0x55 {
+		t.Error("did not correctly set bit flags, got", result)
+	}
+}
+
 func TestANDImmediate(t *testing.T) {
 	cpu := NewCPU()
 	cpu.A = 0x01
@@ -1375,5 +1427,705 @@ func TestBVSWithNegativeRelativeAddress(t *testing.T) {
 }
 
 func TestBRK(t *testing.T) {
-	t.Error("htf do interrupts work tho")
+	cpu := NewCPU()
+	cpu.Memory[0xFFFE] = 0x0A
+	cpu.Memory[0xFFFF] = 0x02
+	cpu.PC = 0x00
+	cpu.Exec()
+
+	if cpu.PC != 0x020A {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.BFlag != true {
+		t.Error("did not correctly set Break flag")
+	}
+
+	if cpu.Cycles != 7 {
+		t.Error("did not correctly update cycles, got", cpu.Cycles)
+	}
+}
+
+func TestCLC(t *testing.T) {
+	cpu := NewCPU()
+	cpu.CFlag = true
+	cpu.PC = 0x01
+	cpu.Memory[1] = 0x18
+	cpu.Exec()
+
+	if cpu.CFlag != false {
+		t.Error("did not clear C Flag")
+	}
+}
+
+func TestCLCFlagUnset(t *testing.T) {
+	cpu := NewCPU()
+	cpu.CFlag = false
+	cpu.PC = 0x01
+	cpu.Memory[1] = 0x18
+	cpu.Exec()
+
+	if cpu.CFlag != false {
+		t.Error("did not clear C Flag")
+	}
+}
+
+func TestCLI(t *testing.T) {
+	cpu := NewCPU()
+	cpu.IFlag = true
+	cpu.PC = 0x01
+	cpu.Memory[1] = 0x58
+	cpu.Exec()
+
+	if cpu.CFlag != false {
+		t.Error("did not clear I Flag")
+	}
+}
+
+func TestCLIFlagUnset(t *testing.T) {
+	cpu := NewCPU()
+	cpu.IFlag = false
+	cpu.PC = 0x01
+	cpu.Memory[1] = 0x58
+	cpu.Exec()
+
+	if cpu.CFlag != false {
+		t.Error("did not clear I Flag")
+	}
+}
+
+func TestCLV(t *testing.T) {
+	cpu := NewCPU()
+	cpu.VFlag = true
+	cpu.PC = 0x01
+	cpu.Memory[1] = 0xB8
+	cpu.Exec()
+
+	if cpu.CFlag != false {
+		t.Error("did not clear V Flag")
+	}
+}
+
+func TestCLVFlagUnset(t *testing.T) {
+	cpu := NewCPU()
+	cpu.VFlag = false
+	cpu.PC = 0x01
+	cpu.Memory[1] = 0xB8
+	cpu.Exec()
+
+	if cpu.CFlag != false {
+		t.Error("did not clear V Flag")
+	}
+}
+
+func TestCMPImmediate(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = false
+	cpu.NFlag = false
+	cpu.CFlag = false
+	cpu.A = 0x02
+	cpu.PC = 0x01
+	cpu.Memory[1] = 0xC9
+	cpu.Memory[2] = 0x01
+	cpu.Exec()
+
+	if cpu.CFlag != true {
+		t.Error("incorrectly set Carry flag")
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("incorrectly set Zero flag")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("incorrectly set Negative flag")
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly update cycles, got", cpu.Cycles)
+	}
+
+	if cpu.PC != 3 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestCMPImmediateWithEqualInput(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = false
+	cpu.NFlag = false
+	cpu.CFlag = false
+	cpu.A = 0x01
+	cpu.PC = 0x01
+	cpu.Memory[1] = 0xC9
+	cpu.Memory[2] = 0x01
+	cpu.Exec()
+
+	if cpu.CFlag != true {
+		t.Error("incorrectly set Carry flag")
+	}
+
+	if cpu.ZFlag != true {
+		t.Error("incorrectly set Zero flag")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("incorrectly set Negative flag")
+	}
+}
+
+func TestCMPImmediateWithOperandGreater(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = false
+	cpu.NFlag = false
+	cpu.CFlag = false
+	cpu.A = 0x01
+	cpu.PC = 0x01
+	cpu.Memory[1] = 0xC9
+	cpu.Memory[2] = 0x02
+	cpu.Exec()
+
+	if cpu.CFlag != false {
+		t.Error("incorrectly set Carry flag")
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("incorrectly set Zero flag")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("incorrectly set Negative flag")
+	}
+
+}
+
+func TestCMPZeroPage(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = false
+	cpu.NFlag = false
+	cpu.CFlag = false
+	cpu.A = 0x01
+	cpu.PC = 0x01
+	cpu.Memory[1] = 0xC5
+	cpu.Memory[2] = 0x09
+	cpu.Memory[9] = 0x02
+	cpu.Exec()
+
+	if cpu.CFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 3 {
+		t.Error("did not correctly update cycles, got", cpu.Cycles)
+	}
+}
+
+func TestCMPZeroPageX(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x03
+	cpu.X = 0x01
+	cpu.Memory[0] = 0xD5
+	cpu.Memory[1] = 0x08
+	cpu.Memory[9] = 0x03
+	cpu.Exec()
+
+	if cpu.ZFlag != true {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestCMPAbsolute(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x05
+	cpu.Memory[0] = 0xCD
+	cpu.Memory[1] = 0x01
+	cpu.Memory[2] = 0xFF
+	cpu.Memory[0xFF01] = 0x03
+	cpu.Exec()
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.CFlag != true {
+		t.Error("set carry flag incorrectly")
+	}
+
+	if cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 3 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestCMPAbsoluteX(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x05
+	cpu.X = 0x05
+	cpu.Memory[0] = 0xDD
+	cpu.Memory[1] = 0x01
+	cpu.Memory[2] = 0xFF
+	cpu.Memory[0xFF06] = 0x06
+	cpu.Exec()
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.CFlag != false {
+		t.Error("set carry flag incorrectly")
+	}
+
+	if cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 3 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestCMPAbsoluteXWithPageCross(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x05
+	cpu.X = 0xFF
+	cpu.Memory[0] = 0xDD
+	cpu.Memory[1] = 0x01
+	cpu.Memory[2] = 0xFE
+	cpu.Memory[0xFF00] = 0x0F
+	cpu.Exec()
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 3 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestCMPAbsoluteY(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x05
+	cpu.Y = 0x05
+	cpu.Memory[0] = 0xD9
+	cpu.Memory[1] = 0x01
+	cpu.Memory[2] = 0xFF
+	cpu.Memory[0xFF06] = 0x06
+	cpu.Exec()
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.CFlag != false {
+		t.Error("set carry flag incorrectly")
+	}
+
+	if cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 3 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestCMPAbsoluteYWithPageCross(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x05
+	cpu.Y = 0xFF
+	cpu.Memory[0] = 0xD9
+	cpu.Memory[1] = 0x01
+	cpu.Memory[2] = 0xFE
+	cpu.Memory[0xFF00] = 0x0F
+	cpu.Exec()
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 3 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestCMPIndexedIndirect(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x05
+	cpu.X = 0x01
+	cpu.Memory[0] = 0xC1
+	cpu.Memory[1] = 0xFE
+	cpu.Memory[9] = 0x06
+	cpu.Memory[0xFF] = 0x09
+	cpu.Exec()
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestCMPIndexedIndirectWithOverflow(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x05
+	cpu.X = 0x0B
+	cpu.Memory[0] = 0xC1
+	cpu.Memory[1] = 0xFF
+	cpu.Memory[9] = 0x06
+	cpu.Memory[0x0A] = 0x09
+	cpu.Exec()
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestCMPIndirectIndexed(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x05
+	cpu.Y = 0x01
+	cpu.Memory[0] = 0xD1
+	cpu.Memory[1] = 0x02
+	cpu.Memory[2] = 0x05
+	cpu.Memory[6] = 0x06
+	cpu.Exec()
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestCMPIndirectIndexedWithPageCross(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x05
+	cpu.Y = 0x01
+	cpu.Memory[0] = 0xD1
+	cpu.Memory[1] = 0x02
+	cpu.Memory[2] = 0xFF
+	cpu.Memory[0x100] = 0x06
+	cpu.Exec()
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestCPXImmediate(t *testing.T) {
+	cpu := NewCPU()
+	cpu.X = 0x02
+	cpu.Memory[0] = 0xE0
+	cpu.Memory[1] = 0x01
+	cpu.Exec()
+
+	if cpu.CFlag != true {
+		t.Error("incorrectly set Carry flag")
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("incorrectly set Zero flag")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("incorrectly set Negative flag")
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly update cycles, got", cpu.Cycles)
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestCPXImmediateWithEqualInput(t *testing.T) {
+	cpu := NewCPU()
+	cpu.X = 0x01
+	cpu.PC = 0x01
+	cpu.Memory[1] = 0xE0
+	cpu.Memory[2] = 0x01
+	cpu.Exec()
+
+	if cpu.CFlag != true {
+		t.Error("incorrectly set Carry flag")
+	}
+
+	if cpu.ZFlag != true {
+		t.Error("incorrectly set Zero flag")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("incorrectly set Negative flag")
+	}
+}
+
+func TestCPXImmediateWithOperandGreater(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = false
+	cpu.NFlag = false
+	cpu.CFlag = false
+	cpu.A = 0x01
+	cpu.PC = 0x01
+	cpu.Memory[1] = 0xE0
+	cpu.Memory[2] = 0x02
+	cpu.Exec()
+
+	if cpu.CFlag != false {
+		t.Error("incorrectly set Carry flag")
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("incorrectly set Zero flag")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("incorrectly set Negative flag")
+	}
+
+}
+
+func TestCPXZeroPage(t *testing.T) {
+	cpu := NewCPU()
+	cpu.X = 0x01
+	cpu.Memory[0] = 0xE4
+	cpu.Memory[1] = 0x09
+	cpu.Memory[9] = 0x02
+	cpu.Exec()
+
+	if cpu.CFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 3 {
+		t.Error("did not correctly update cycles, got", cpu.Cycles)
+	}
+}
+
+func TestCPXAbsolute(t *testing.T) {
+	cpu := NewCPU()
+	cpu.X = 0x05
+	cpu.Memory[0] = 0xEC
+	cpu.Memory[1] = 0x01
+	cpu.Memory[2] = 0xFF
+	cpu.Memory[0xFF01] = 0x03
+	cpu.Exec()
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.CFlag != true {
+		t.Error("set carry flag incorrectly")
+	}
+
+	if cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 3 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestCPYImmediate(t *testing.T) {
+	cpu := NewCPU()
+	cpu.X = 0x02
+	cpu.Memory[0] = 0xE0
+	cpu.Memory[1] = 0x01
+	cpu.Exec()
+
+	if cpu.CFlag != true {
+		t.Error("incorrectly set Carry flag")
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("incorrectly set Zero flag")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("incorrectly set Negative flag")
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly update cycles, got", cpu.Cycles)
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestCPYImmediateWithEqualInput(t *testing.T) {
+	cpu := NewCPU()
+	cpu.X = 0x01
+	cpu.PC = 0x01
+	cpu.Memory[1] = 0xE0
+	cpu.Memory[2] = 0x01
+	cpu.Exec()
+
+	if cpu.CFlag != true {
+		t.Error("incorrectly set Carry flag")
+	}
+
+	if cpu.ZFlag != true {
+		t.Error("incorrectly set Zero flag")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("incorrectly set Negative flag")
+	}
+}
+
+func TestCPYImmediateWithOperandGreater(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = false
+	cpu.NFlag = false
+	cpu.CFlag = false
+	cpu.A = 0x01
+	cpu.PC = 0x01
+	cpu.Memory[1] = 0xE0
+	cpu.Memory[2] = 0x02
+	cpu.Exec()
+
+	if cpu.CFlag != false {
+		t.Error("incorrectly set Carry flag")
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("incorrectly set Zero flag")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("incorrectly set Negative flag")
+	}
+
+}
+
+func TestCPYZeroPage(t *testing.T) {
+	cpu := NewCPU()
+	cpu.X = 0x01
+	cpu.Memory[0] = 0xE4
+	cpu.Memory[1] = 0x09
+	cpu.Memory[9] = 0x02
+	cpu.Exec()
+
+	if cpu.CFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 3 {
+		t.Error("did not correctly update cycles, got", cpu.Cycles)
+	}
+}
+
+func TestCPYAbsolute(t *testing.T) {
+	cpu := NewCPU()
+	cpu.Y = 0x05
+	cpu.Memory[0] = 0xCC
+	cpu.Memory[1] = 0x01
+	cpu.Memory[2] = 0xFF
+	cpu.Memory[0xFF01] = 0x03
+	cpu.Exec()
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.CFlag != true {
+		t.Error("set carry flag incorrectly")
+	}
+
+	if cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 3 {
+		t.Error("did not correctly update PC")
+	}
 }

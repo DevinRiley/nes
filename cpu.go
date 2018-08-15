@@ -16,6 +16,7 @@ type CPU struct {
 	IFlag  bool
 	DFlag  bool
 	BFlag  bool
+	UFlag  bool // unused
 	VFlag  bool
 	NFlag  bool
 	Cycles uint
@@ -50,22 +51,51 @@ func (cpu *CPU) Exec() {
 	}
 }
 
-func (cpu *CPU) setZeroFlag() {
-	// set zero flag if accumulator is zero
-	if cpu.A == 0 {
-		cpu.ZFlag = true
+func (cpu *CPU) setZeroFlag(n byte) {
+	// set zero flag if input is zero
+	cpu.ZFlag = n == 0
+}
+
+func (cpu *CPU) setNegativeFlag(n byte) {
+	// Set negative flag if input bit 7 is 1
+	cpu.NFlag = n&0x80 > 0
+}
+
+func (cpu *CPU) flagToInt(flag bool) uint8 {
+	if flag {
+		return 1
 	} else {
-		cpu.ZFlag = false
+		return 0
 	}
 }
 
-func (cpu *CPU) setNegativeFlag() {
-	// Set negative flag if Accumulator bit 7 is 1
-	if cpu.A&byte(0x01<<7) != 0 {
-		cpu.NFlag = true
+func (cpu *CPU) intToFlag(n uint8) bool {
+	if n == 0 {
+		return false
 	} else {
-		cpu.NFlag = false
+		return true
 	}
+}
+
+func (cpu *CPU) flagsToByte() byte {
+	return (cpu.flagToInt(cpu.NFlag) << 7) |
+		(cpu.flagToInt(cpu.VFlag) << 6) |
+		(cpu.flagToInt(cpu.UFlag) << 5) |
+		(cpu.flagToInt(cpu.BFlag) << 4) |
+		(cpu.flagToInt(cpu.DFlag) << 3) |
+		(cpu.flagToInt(cpu.IFlag) << 2) |
+		(cpu.flagToInt(cpu.ZFlag) << 1) |
+		(cpu.flagToInt(cpu.CFlag) << 0)
+}
+
+func (cpu *CPU) stackPush(value byte) {
+	cpu.Memory[0x100|uint16(cpu.SP)] = value
+	cpu.SP -= 1
+}
+
+func (cpu *CPU) stackPop() byte {
+	cpu.SP += 1
+	return cpu.Memory[0x100|uint16(cpu.SP)]
 }
 
 func context(cpu *CPU, opcode byte) *InstructionContext {
@@ -103,10 +133,11 @@ func context(cpu *CPU, opcode byte) *InstructionContext {
 		}
 	} else if mode == Relative {
 		address = cpu.PC + 1
+	} else if mode == Implied {
 	} else {
 		// WIP: garbage value for now, later this should probably be a switch statement
 		// and blow up if we don't know the addressing mode
-		address = 0x01
+		address = 0x00
 	}
 
 	return &InstructionContext{
@@ -119,7 +150,7 @@ func context(cpu *CPU, opcode byte) *InstructionContext {
 func NewCPU() *CPU {
 	return &CPU{
 		PC:     0x00,
-		SP:     0x00,
+		SP:     0xFF,
 		A:      0x00,
 		X:      0x00,
 		Y:      0x00,

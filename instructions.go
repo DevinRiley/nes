@@ -40,24 +40,8 @@ type InstructionMetadata struct {
 }
 
 func fakeFunctionNeverCalled() {
-	fmt.Println("So i can keep fmt imported")
+	fmt.Println("So i can keep fmt imported, lol")
 }
-func flagToInt(flag bool) uint8 {
-	if flag {
-		return 1
-	} else {
-		return 0
-	}
-}
-
-func intToFlag(n uint8) bool {
-	if n == 0 {
-		return false
-	} else {
-		return true
-	}
-}
-
 func branchRelative(cpu *CPU, context *InstructionContext) {
 	var branchLocation uint16
 
@@ -78,12 +62,20 @@ func branchRelative(cpu *CPU, context *InstructionContext) {
 	cpu.PC = branchLocation
 }
 
+func compare(cpu *CPU, register byte, operand byte) {
+	result := register - operand
+
+	cpu.CFlag = int8(result) >= 0
+	cpu.setNegativeFlag(result)
+	cpu.setZeroFlag(result)
+}
+
 var AND = Instruction{
 	Assembly: "AND",
 	Exec: func(cpu *CPU, context *InstructionContext) {
 		cpu.A = (cpu.A & cpu.Memory[context.Address])
-		cpu.setZeroFlag()
-		cpu.setNegativeFlag()
+		cpu.setZeroFlag(cpu.A)
+		cpu.setNegativeFlag(cpu.A)
 	},
 }
 
@@ -92,7 +84,7 @@ var ADC = Instruction{
 	Exec: func(cpu *CPU, context *InstructionContext) {
 		accumulator := cpu.A
 		operand := cpu.Memory[context.Address]
-		carry := flagToInt(cpu.CFlag)
+		carry := cpu.flagToInt(cpu.CFlag)
 
 		cpu.A = accumulator + operand + carry
 
@@ -110,8 +102,8 @@ var ADC = Instruction{
 			cpu.VFlag = false
 		}
 
-		cpu.setZeroFlag()
-		cpu.setNegativeFlag()
+		cpu.setZeroFlag(cpu.A)
+		cpu.setNegativeFlag(cpu.A)
 	},
 }
 
@@ -134,8 +126,8 @@ var ASL = Instruction{
 
 		cpu.A = operand << 1
 
-		cpu.setZeroFlag()
-		cpu.setNegativeFlag()
+		cpu.setZeroFlag(cpu.A)
+		cpu.setNegativeFlag(cpu.A)
 	},
 }
 
@@ -176,8 +168,8 @@ var BIT = Instruction{
 			cpu.ZFlag = false
 		}
 
-		cpu.NFlag = intToFlag(operand & 0x80)
-		cpu.VFlag = intToFlag(operand & 0x40)
+		cpu.NFlag = cpu.intToFlag(operand & 0x80)
+		cpu.VFlag = cpu.intToFlag(operand & 0x40)
 	},
 }
 
@@ -208,6 +200,23 @@ var BPL = Instruction{
 	},
 }
 
+var BRK = Instruction{
+	Assembly: "BRK",
+	Exec: func(cpu *CPU, context *InstructionContext) {
+		// push the PC onto the stack
+		cpu.stackPush(byte(cpu.PC >> 8)) // high byte first
+		cpu.stackPush(byte(cpu.PC))      // then the low byte
+		// push the status flags onto the stack
+		cpu.stackPush(cpu.flagsToByte())
+		// load the interrupt address from $FFFE and $FFFF
+		lo := uint16(cpu.Memory[0xFFFE])
+		hi := uint16(cpu.Memory[0xFFFF])
+		cpu.PC = (hi << 8) | lo
+		// Set the break flag
+		cpu.BFlag = true // When does this get unset?
+	},
+}
+
 var BVC = Instruction{
 	Assembly: "BVC",
 	Exec: func(cpu *CPU, context *InstructionContext) {
@@ -226,12 +235,56 @@ var BVS = Instruction{
 	},
 }
 
+var CLC = Instruction{
+	Assembly: "CLC",
+	Exec: func(cpu *CPU, context *InstructionContext) {
+		cpu.CFlag = false
+	},
+}
+
+var CLI = Instruction{
+	Assembly: "CLI",
+	Exec: func(cpu *CPU, context *InstructionContext) {
+		cpu.IFlag = false
+	},
+}
+
+var CLV = Instruction{
+	Assembly: "CLV",
+	Exec: func(cpu *CPU, context *InstructionContext) {
+		cpu.VFlag = false
+	},
+}
+
+var CMP = Instruction{
+	Assembly: "CMP",
+	Exec: func(cpu *CPU, context *InstructionContext) {
+		compare(cpu, cpu.A, cpu.Memory[context.Address])
+	},
+}
+
+var CPX = Instruction{
+	Assembly: "CPX",
+	Exec: func(cpu *CPU, context *InstructionContext) {
+		compare(cpu, cpu.X, cpu.Memory[context.Address])
+	},
+}
+
+var CPY = Instruction{
+	Assembly: "CPY",
+	Exec: func(cpu *CPU, context *InstructionContext) {
+		compare(cpu, cpu.Y, cpu.Memory[context.Address])
+	},
+}
+
 var instructionMap = map[uint8]Instruction{
+	0x00: BRK,
 	0x06: ASL,
 	0x0A: ASL,
 	0x0E: ASL,
 	0x10: BPL,
 	0x16: ASL,
+	0x18: CLC,
 	0x1E: ASL,
 	0x21: AND,
 	0x24: BIT,
@@ -245,6 +298,7 @@ var instructionMap = map[uint8]Instruction{
 	0x3D: AND,
 	0x39: AND,
 	0x50: BVC,
+	0x58: CLI,
 	0x61: ADC,
 	0x65: ADC,
 	0x69: ADC,
@@ -256,16 +310,33 @@ var instructionMap = map[uint8]Instruction{
 	0x79: ADC,
 	0x90: BCC,
 	0xB0: BCS,
+	0xB8: CLV,
+	0xC0: CPY,
+	0xC1: CMP,
+	0xC4: CPY,
+	0xC5: CMP,
+	0xC9: CMP,
+	0xCC: CPY,
+	0xCD: CMP,
 	0xD0: BNE,
+	0xD1: CMP,
+	0xD5: CMP,
+	0xD9: CMP,
+	0xDD: CMP,
+	0xE0: CPX,
+	0xE4: CPX,
+	0xEC: CPX,
 	0xF0: BEQ,
 }
 
 var addressingModeMap = map[uint8]AddressingMode{
+	0x00: Implied,
 	0x06: ZeroPage,
 	0x0A: Accumulator,
 	0x0E: Absolute,
 	0x10: Relative,
 	0x16: ZeroPageX,
+	0x18: Implied,
 	0x1E: AbsoluteX,
 	0x21: IndexedIndirect,
 	0x24: ZeroPage,
@@ -279,6 +350,7 @@ var addressingModeMap = map[uint8]AddressingMode{
 	0x3D: AbsoluteX,
 	0x39: AbsoluteY,
 	0x50: Relative,
+	0x58: Implied,
 	0x61: IndexedIndirect,
 	0x65: ZeroPage,
 	0x69: Immediate,
@@ -290,11 +362,30 @@ var addressingModeMap = map[uint8]AddressingMode{
 	0x79: AbsoluteY,
 	0x90: Relative,
 	0xB0: Relative,
+	0xB8: Implied,
+	0xC0: Immediate,
+	0xC1: IndexedIndirect,
+	0xC4: ZeroPage,
+	0xC5: ZeroPage,
+	0xC9: Immediate,
+	0xCC: Absolute,
+	0xCD: Absolute,
 	0xD0: Relative,
+	0xD1: IndirectIndexed,
+	0xD5: ZeroPageX,
+	0xD9: AbsoluteY,
+	0xDD: AbsoluteX,
+	0xE0: Immediate,
+	0xE4: ZeroPage,
+	0xEC: Absolute,
 	0xF0: Relative,
 }
 
 var instructionMetadata = map[uint8]InstructionMetadata{
+	0x00: InstructionMetadata{
+		Cycles: seven,
+		Bytes:  2,
+	},
 	0x06: InstructionMetadata{
 		Cycles: five,
 		Bytes:  2,
@@ -314,6 +405,10 @@ var instructionMetadata = map[uint8]InstructionMetadata{
 	0x16: InstructionMetadata{
 		Cycles: six,
 		Bytes:  2,
+	},
+	0x18: InstructionMetadata{
+		Cycles: two,
+		Bytes:  1,
 	},
 	0x1E: InstructionMetadata{
 		Cycles: seven,
@@ -367,6 +462,10 @@ var instructionMetadata = map[uint8]InstructionMetadata{
 		Cycles: two,
 		Bytes:  2,
 	},
+	0x58: InstructionMetadata{
+		Cycles: two,
+		Bytes:  1,
+	},
 	0x65: InstructionMetadata{
 		Cycles: three,
 		Bytes:  2,
@@ -411,9 +510,69 @@ var instructionMetadata = map[uint8]InstructionMetadata{
 		Cycles: two,
 		Bytes:  2,
 	},
+	0xB8: InstructionMetadata{
+		Cycles: two,
+		Bytes:  1,
+	},
+	0xC0: InstructionMetadata{
+		Cycles: two,
+		Bytes:  2,
+	},
+	0xC1: InstructionMetadata{
+		Cycles: six,
+		Bytes:  2,
+	},
+	0xC4: InstructionMetadata{
+		Cycles: three,
+		Bytes:  2,
+	},
+	0xC5: InstructionMetadata{
+		Cycles: three,
+		Bytes:  2,
+	},
+	0xC9: InstructionMetadata{
+		Cycles: two,
+		Bytes:  2,
+	},
+	0xCC: InstructionMetadata{
+		Cycles: four,
+		Bytes:  3,
+	},
+	0xCD: InstructionMetadata{
+		Cycles: four,
+		Bytes:  3,
+	},
 	0xD0: InstructionMetadata{
 		Cycles: two,
 		Bytes:  2,
+	},
+	0xD1: InstructionMetadata{
+		Cycles: fiveIncrementOnPageCross,
+		Bytes:  2,
+	},
+	0xD5: InstructionMetadata{
+		Cycles: four,
+		Bytes:  2,
+	},
+	0xD9: InstructionMetadata{
+		Cycles: fourIncrementOnPageCross,
+		Bytes:  3,
+	},
+	0xDD: InstructionMetadata{
+		Cycles: fourIncrementOnPageCross,
+		Bytes:  3,
+	},
+	0xE0: InstructionMetadata{
+		Cycles: two,
+		Bytes:  2,
+	},
+	0xE4: InstructionMetadata{
+		Cycles: three,
+		Bytes:  2,
+	},
+	0xEC: InstructionMetadata{
+		Cycles: four,
+		Bytes:  3,
 	},
 	0xF0: InstructionMetadata{
 		Cycles: two,
@@ -465,28 +624,24 @@ func fiveIncrementOnPageCross(context *InstructionContext) uint {
 //       Would allow the use of a single map to lookup instructions
 //       and their metadata.
 //
-// type InstructionMetadata struct {
+// type InstructionRefactor struct {
 // 	Cycles func(context *InstructionContext) uint
 // 	Bytes  uint16
-//  Assembly string
 //  AddCycleOnPageCross bool
 //  AddressingMode AddressingMode
-// }
-//
-// type Instruction struct {
-// 	Metadata InstructionMetadata
-// 	Exec     func(*CPU, *InstructionContext)
+//  Assembly string
+//  Opcode   byte
+// 	Exec     func(*InstructionContext)
 // }
 //
 // var instructionMap = map[uint8]InstructionRefactor{
 // 	0x21: Instruction{
-// 		Metadata: {
-// 			Cycles: 6,
-// 			Bytes:  2,
-// 			AddCycleOnPageCross: true,
-//          AddressingMode: Immediate,
-// 		},
+// 		Cycles: 6,
+// 		Bytes:  2,
+// 		AddCycleOnPageCross: true,
+//      AddressingMode: Immediate,
 //      Assembly: "AND",
+//      Opcode: 0x21
 // 		Exec: AND,
 // 	},
 // }
