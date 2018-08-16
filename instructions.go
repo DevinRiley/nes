@@ -66,16 +66,21 @@ func compare(cpu *CPU, register byte, operand byte) {
 	result := register - operand
 
 	cpu.CFlag = int8(result) >= 0
-	cpu.setNegativeFlag(result)
-	cpu.setZeroFlag(result)
+	cpu.setZeroAndNegativeFlags(result)
+}
+
+func decrement(cpu *CPU, target byte) byte {
+	result := target - 1
+	cpu.setZeroAndNegativeFlags(result)
+
+	return result
 }
 
 var AND = Instruction{
 	Assembly: "AND",
 	Exec: func(cpu *CPU, context *InstructionContext) {
 		cpu.A = (cpu.A & cpu.Memory[context.Address])
-		cpu.setZeroFlag(cpu.A)
-		cpu.setNegativeFlag(cpu.A)
+		cpu.setZeroAndNegativeFlags(cpu.A)
 	},
 }
 
@@ -102,8 +107,7 @@ var ADC = Instruction{
 			cpu.VFlag = false
 		}
 
-		cpu.setZeroFlag(cpu.A)
-		cpu.setNegativeFlag(cpu.A)
+		cpu.setZeroAndNegativeFlags(cpu.A)
 	},
 }
 
@@ -126,8 +130,7 @@ var ASL = Instruction{
 
 		cpu.A = operand << 1
 
-		cpu.setZeroFlag(cpu.A)
-		cpu.setNegativeFlag(cpu.A)
+		cpu.setZeroAndNegativeFlags(cpu.A)
 	},
 }
 
@@ -277,6 +280,20 @@ var CPY = Instruction{
 	},
 }
 
+var DEC = Instruction{
+	Assembly: "DEC",
+	Exec: func(cpu *CPU, context *InstructionContext) {
+		cpu.Memory[context.Address] = decrement(cpu, cpu.Memory[context.Address])
+	},
+}
+
+var DEX = Instruction{
+	Assembly: "DEX",
+	Exec: func(cpu *CPU, context *InstructionContext) {
+		cpu.X = decrement(cpu, cpu.X)
+	},
+}
+
 var instructionMap = map[uint8]Instruction{
 	0x00: BRK,
 	0x06: ASL,
@@ -315,14 +332,19 @@ var instructionMap = map[uint8]Instruction{
 	0xC1: CMP,
 	0xC4: CPY,
 	0xC5: CMP,
+	0xC6: DEC,
 	0xC9: CMP,
+	0xCA: DEX,
 	0xCC: CPY,
 	0xCD: CMP,
+	0xCE: DEC,
 	0xD0: BNE,
 	0xD1: CMP,
 	0xD5: CMP,
+	0xD6: DEC,
 	0xD9: CMP,
 	0xDD: CMP,
+	0xDE: DEC,
 	0xE0: CPX,
 	0xE4: CPX,
 	0xEC: CPX,
@@ -367,14 +389,19 @@ var addressingModeMap = map[uint8]AddressingMode{
 	0xC1: IndexedIndirect,
 	0xC4: ZeroPage,
 	0xC5: ZeroPage,
+	0xC6: ZeroPage,
 	0xC9: Immediate,
+	0xCA: Immediate,
 	0xCC: Absolute,
 	0xCD: Absolute,
+	0xCE: Absolute,
 	0xD0: Relative,
 	0xD1: IndirectIndexed,
 	0xD5: ZeroPageX,
+	0xD6: ZeroPageX,
 	0xD9: AbsoluteY,
 	0xDD: AbsoluteX,
+	0xDE: AbsoluteX,
 	0xE0: Immediate,
 	0xE4: ZeroPage,
 	0xEC: Absolute,
@@ -530,9 +557,17 @@ var instructionMetadata = map[uint8]InstructionMetadata{
 		Cycles: three,
 		Bytes:  2,
 	},
+	0xC6: InstructionMetadata{
+		Cycles: five,
+		Bytes:  2,
+	},
 	0xC9: InstructionMetadata{
 		Cycles: two,
 		Bytes:  2,
+	},
+	0xCA: InstructionMetadata{
+		Cycles: two,
+		Bytes:  1,
 	},
 	0xCC: InstructionMetadata{
 		Cycles: four,
@@ -540,6 +575,10 @@ var instructionMetadata = map[uint8]InstructionMetadata{
 	},
 	0xCD: InstructionMetadata{
 		Cycles: four,
+		Bytes:  3,
+	},
+	0xCE: InstructionMetadata{
+		Cycles: six,
 		Bytes:  3,
 	},
 	0xD0: InstructionMetadata{
@@ -554,12 +593,20 @@ var instructionMetadata = map[uint8]InstructionMetadata{
 		Cycles: four,
 		Bytes:  2,
 	},
+	0xD6: InstructionMetadata{
+		Cycles: six,
+		Bytes:  2,
+	},
 	0xD9: InstructionMetadata{
 		Cycles: fourIncrementOnPageCross,
 		Bytes:  3,
 	},
 	0xDD: InstructionMetadata{
 		Cycles: fourIncrementOnPageCross,
+		Bytes:  3,
+	},
+	0xDE: InstructionMetadata{
+		Cycles: seven,
 		Bytes:  3,
 	},
 	0xE0: InstructionMetadata{

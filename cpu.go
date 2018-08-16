@@ -61,6 +61,10 @@ func (cpu *CPU) setNegativeFlag(n byte) {
 	cpu.NFlag = n&0x80 > 0
 }
 
+func (cpu *CPU) setZeroAndNegativeFlags(n byte) {
+	cpu.setZeroFlag(n)
+	cpu.setNegativeFlag(n)
+}
 func (cpu *CPU) flagToInt(flag bool) uint8 {
 	if flag {
 		return 1

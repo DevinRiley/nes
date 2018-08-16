@@ -2129,3 +2129,185 @@ func TestCPYAbsolute(t *testing.T) {
 		t.Error("did not correctly update PC")
 	}
 }
+
+func TestDECZeroPage(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = true
+	cpu.NFlag = true
+	cpu.Memory[0] = 0xC6
+	cpu.Memory[1] = 0x0A
+	cpu.Memory[10] = 0x02
+	cpu.Exec()
+
+	if cpu.Memory[10] != 0x01 {
+		t.Error("failed to update memory value correclty, got", cpu.Memory[10])
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestDECZeroPageWithNegativeResult(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = true
+	cpu.NFlag = true
+	cpu.Memory[0] = 0xC6
+	cpu.Memory[1] = 0x0A
+	cpu.Memory[10] = 0x00
+	cpu.Exec()
+
+	if cpu.Memory[10] != 0xFF {
+		t.Error("failed to update memory value correclty, got", cpu.Memory[10])
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestDECZeroPageX(t *testing.T) {
+	cpu := NewCPU()
+	cpu.NFlag = true
+	cpu.X = 0x1
+	cpu.Memory[0] = 0xD6
+	cpu.Memory[1] = 0x09
+	cpu.Memory[10] = 0x01
+	cpu.Exec()
+
+	if cpu.Memory[10] != 0x00 {
+		t.Error("failed to update memory value correclty, got", cpu.Memory[10])
+	}
+
+	if cpu.ZFlag != true {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestDECAbsolute(t *testing.T) {
+	cpu := NewCPU()
+	cpu.NFlag = true
+	cpu.ZFlag = true
+	cpu.Memory[0] = 0xCE
+	cpu.Memory[1] = 0x09
+	cpu.Memory[2] = 0x09
+	cpu.Memory[0x0909] = 0x02
+	cpu.Exec()
+
+	if cpu.Memory[0x0909] != 0x01 {
+		t.Error("failed to update memory value correclty, got", cpu.Memory[10])
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 3 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestDECAbsoluteX(t *testing.T) {
+	cpu := NewCPU()
+	cpu.X = 0x01
+	cpu.NFlag = true
+	cpu.ZFlag = true
+	cpu.Memory[0] = 0xDE
+	cpu.Memory[1] = 0x09
+	cpu.Memory[2] = 0x09
+	cpu.Memory[0x090A] = 0x02
+	cpu.Exec()
+
+	if cpu.Memory[0x090A] != 0x01 {
+		t.Error("failed to update memory value correclty, got", cpu.Memory[10])
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 7 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 3 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestDEX(t *testing.T) {
+	cpu := NewCPU()
+	cpu.X = 0x02
+	cpu.NFlag = true
+	cpu.ZFlag = true
+	cpu.Memory[0] = 0xCA
+	cpu.Exec()
+
+	if cpu.X != 0x01 {
+		t.Error("failed to update X register correctly, got", cpu.X)
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 1 {
+		t.Error("did not correctly update PC")
+	}
+}
