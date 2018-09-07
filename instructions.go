@@ -23,20 +23,856 @@ const (
 	ZeroPageY                      // 13
 )
 
-type InstructionContext struct {
-	Mode        AddressingMode
-	PageCrossed bool
-	Address     uint16
-}
-
 type Instruction struct {
-	Assembly string
-	Exec     func(*CPU, *InstructionContext)
+	Bytes               uint16
+	Cycles              uint
+	AddCycleOnPageCross bool
+	AddressingMode      AddressingMode
+	Assembly            string
+	Opcode              byte
+	Exec                func(*CPU, *InstructionContext)
 }
 
-type InstructionMetadata struct {
-	Cycles func(context *InstructionContext) uint
-	Bytes  uint16
+type InstructionContext struct {
+	PageCrossed    bool
+	Address        uint16
+	AddressingMode AddressingMode
+}
+
+var instructionMap = map[uint8]Instruction{
+	0x00: Instruction{
+		Bytes:               2,
+		Cycles:              7,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "BRK",
+		Opcode:              0x00,
+		Exec:                BRK,
+	},
+	0x06: Instruction{
+		Bytes:               2,
+		Cycles:              5,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "ASL",
+		Opcode:              0x06,
+		Exec:                ASL,
+	},
+	0x0A: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Accumulator,
+		Assembly:            "ASL",
+		Opcode:              0x0A,
+		Exec:                ASL,
+	},
+	0x0E: Instruction{
+		Bytes:               3,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "ASL",
+		Opcode:              0x0E,
+		Exec:                ASL,
+	},
+	0x10: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Relative,
+		Assembly:            "BPL",
+		Opcode:              0x10,
+		Exec:                BPL,
+	},
+	0x16: Instruction{
+		Bytes:               2,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageX,
+		Assembly:            "ASL",
+		Opcode:              0x16,
+		Exec:                ASL,
+	},
+	0x18: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "CLC",
+		Opcode:              0x18,
+		Exec:                CLC,
+	},
+	0x1E: Instruction{
+		Bytes:               3,
+		Cycles:              7,
+		AddCycleOnPageCross: false,
+		AddressingMode:      AbsoluteX,
+		Assembly:            "ASL",
+		Opcode:              0x1E,
+		Exec:                ASL,
+	},
+	0x20: Instruction{
+		Bytes:               3,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "JSR",
+		Opcode:              0x20,
+		Exec:                JSR,
+	},
+	0x21: Instruction{
+		Bytes:               2,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      IndexedIndirect,
+		Assembly:            "AND",
+		Opcode:              0x21,
+		Exec:                AND,
+	},
+	0x24: Instruction{
+		Bytes:               2,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "BIT",
+		Opcode:              0x24,
+		Exec:                BIT,
+	},
+	0x25: Instruction{
+		Bytes:               2,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "AND",
+		Opcode:              0x25,
+		Exec:                AND,
+	},
+	0x29: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Immediate,
+		Assembly:            "AND",
+		Opcode:              0x29,
+		Exec:                AND,
+	},
+	0x2C: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "BIT",
+		Opcode:              0x2C,
+		Exec:                BIT,
+	},
+	0x2D: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "AND",
+		Opcode:              0x2D,
+		Exec:                AND,
+	},
+	0x30: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Relative,
+		Assembly:            "BMI",
+		Opcode:              0x30,
+		Exec:                BMI,
+	},
+	0x31: Instruction{
+		Bytes:               2,
+		Cycles:              5,
+		AddCycleOnPageCross: true,
+		AddressingMode:      IndirectIndexed,
+		Assembly:            "AND",
+		Opcode:              0x31,
+		Exec:                AND,
+	},
+	0x35: Instruction{
+		Bytes:               2,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageX,
+		Assembly:            "AND",
+		Opcode:              0x35,
+		Exec:                AND,
+	},
+	0x39: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteY,
+		Assembly:            "AND",
+		Opcode:              0x39,
+		Exec:                AND,
+	},
+	0x3D: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteX,
+		Assembly:            "AND",
+		Opcode:              0x3D,
+		Exec:                AND,
+	},
+	0x41: Instruction{
+		Bytes:               2,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      IndexedIndirect,
+		Assembly:            "EOR",
+		Opcode:              0x41,
+		Exec:                EOR,
+	},
+	0x45: Instruction{
+		Bytes:               2,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "EOR",
+		Opcode:              0x45,
+		Exec:                EOR,
+	},
+	0x49: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Immediate,
+		Assembly:            "EOR",
+		Opcode:              0x49,
+		Exec:                EOR,
+	},
+	0x4C: Instruction{
+		Bytes:               3,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "JMP",
+		Opcode:              0x4C,
+		Exec:                JMP,
+	},
+	0x4D: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "EOR",
+		Opcode:              0x4D,
+		Exec:                EOR,
+	},
+	0x50: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Relative,
+		Assembly:            "BVC",
+		Opcode:              0x50,
+		Exec:                BVC,
+	},
+	0x51: Instruction{
+		Bytes:               2,
+		Cycles:              5,
+		AddCycleOnPageCross: true,
+		AddressingMode:      IndirectIndexed,
+		Assembly:            "EOR",
+		Opcode:              0x51,
+		Exec:                EOR,
+	},
+	0x55: Instruction{
+		Bytes:               2,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageX,
+		Assembly:            "EOR",
+		Opcode:              0x50,
+		Exec:                EOR,
+	},
+	0x58: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "CLI",
+		Opcode:              0x58,
+		Exec:                CLI,
+	},
+	0x59: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteY,
+		Assembly:            "EOR",
+		Opcode:              0x59,
+		Exec:                EOR,
+	},
+	0x5D: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteX,
+		Assembly:            "EOR",
+		Opcode:              0x5D,
+		Exec:                EOR,
+	},
+	0x61: Instruction{
+		Bytes:               2,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      IndexedIndirect,
+		Assembly:            "ADC",
+		Opcode:              0x61,
+		Exec:                ADC,
+	},
+	0x65: Instruction{
+		Bytes:               2,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "ADC",
+		Opcode:              0x65,
+		Exec:                ADC,
+	},
+	0x69: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Immediate,
+		Assembly:            "ADC",
+		Opcode:              0x69,
+		Exec:                ADC,
+	},
+	0x6C: Instruction{
+		Bytes:               3,
+		Cycles:              5,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Indirect,
+		Assembly:            "JMP",
+		Opcode:              0x6C,
+		Exec:                JMP,
+	},
+	0x6D: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "ADC",
+		Opcode:              0x6D,
+		Exec:                ADC,
+	},
+	0x70: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Relative,
+		Assembly:            "BVS",
+		Opcode:              0x70,
+		Exec:                BVS,
+	},
+	0x71: Instruction{
+		Bytes:               2,
+		Cycles:              5,
+		AddCycleOnPageCross: true,
+		AddressingMode:      IndirectIndexed,
+		Assembly:            "ADC",
+		Opcode:              0x71,
+		Exec:                ADC,
+	},
+	0x75: Instruction{
+		Bytes:               2,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageX,
+		Assembly:            "ADC",
+		Opcode:              0x75,
+		Exec:                ADC,
+	},
+	0x79: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteY,
+		Assembly:            "ADC",
+		Opcode:              0x79,
+		Exec:                ADC,
+	},
+	0x7D: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteX,
+		Assembly:            "ADC",
+		Opcode:              0x7D,
+		Exec:                ADC,
+	},
+	0x88: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "DEY",
+		Opcode:              0x88,
+		Exec:                DEY,
+	},
+	0x90: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Relative,
+		Assembly:            "BCC",
+		Opcode:              0x90,
+		Exec:                BCC,
+	},
+	0xB0: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Relative,
+		Assembly:            "BCS",
+		Opcode:              0xB0,
+		Exec:                BCS,
+	},
+	0xB8: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Relative,
+		Assembly:            "CLV",
+		Opcode:              0xB8,
+		Exec:                CLV,
+	},
+	0xC0: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Immediate,
+		Assembly:            "CPY",
+		Opcode:              0xC0,
+		Exec:                CPY,
+	},
+	0xC1: Instruction{
+		Bytes:               2,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      IndexedIndirect,
+		Assembly:            "CMP",
+		Opcode:              0xC1,
+		Exec:                CMP,
+	},
+	0xC4: Instruction{
+		Bytes:               2,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "CPY",
+		Opcode:              0xC4,
+		Exec:                CPY,
+	},
+	0xC5: Instruction{
+		Bytes:               2,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "CMP",
+		Opcode:              0xC5,
+		Exec:                CMP,
+	},
+	0xC6: Instruction{
+		Bytes:               2,
+		Cycles:              5,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "DEC",
+		Opcode:              0xC6,
+		Exec:                DEC,
+	},
+	0xC8: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "INY",
+		Opcode:              0xC8,
+		Exec:                INY,
+	},
+	0xC9: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Immediate,
+		Assembly:            "CMP",
+		Opcode:              0xC9,
+		Exec:                CMP,
+	},
+	0xCA: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Immediate,
+		Assembly:            "DEX",
+		Opcode:              0xCA,
+		Exec:                DEX,
+	},
+	0xCC: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "CPY",
+		Opcode:              0xCC,
+		Exec:                CPY,
+	},
+	0xCD: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "CMP",
+		Opcode:              0xCD,
+		Exec:                CMP,
+	},
+	0xCE: Instruction{
+		Bytes:               3,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "DEC",
+		Opcode:              0xCE,
+		Exec:                DEC,
+	},
+	0xD0: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Relative,
+		Assembly:            "BNE",
+		Opcode:              0xD0,
+		Exec:                BNE,
+	},
+	0xD1: Instruction{
+		Bytes:               2,
+		Cycles:              5,
+		AddCycleOnPageCross: true,
+		AddressingMode:      IndirectIndexed,
+		Assembly:            "CMP",
+		Opcode:              0x90,
+		Exec:                CMP,
+	},
+	0xD5: Instruction{
+		Bytes:               2,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageX,
+		Assembly:            "CMP",
+		Opcode:              0xD5,
+		Exec:                CMP,
+	},
+	0xD6: Instruction{
+		Bytes:               2,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageX,
+		Assembly:            "DEC",
+		Opcode:              0xD6,
+		Exec:                DEC,
+	},
+	0xD9: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteY,
+		Assembly:            "CMP",
+		Opcode:              0xD9,
+		Exec:                CMP,
+	},
+	0xDD: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteX,
+		Assembly:            "CMP",
+		Opcode:              0xDD,
+		Exec:                CMP,
+	},
+	0xDE: Instruction{
+		Bytes:               3,
+		Cycles:              7,
+		AddCycleOnPageCross: false,
+		AddressingMode:      AbsoluteX,
+		Assembly:            "DEC",
+		Opcode:              0xDE,
+		Exec:                DEC,
+	},
+	0xE0: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Immediate,
+		Assembly:            "CPX",
+		Opcode:              0xE0,
+		Exec:                CPX,
+	},
+	0xE4: Instruction{
+		Bytes:               2,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "CPX",
+		Opcode:              0xE4,
+		Exec:                CPX,
+	},
+	0xE6: Instruction{
+		Bytes:               2,
+		Cycles:              5,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "INC",
+		Opcode:              0xE6,
+		Exec:                INC,
+	},
+	0xE8: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "INX",
+		Opcode:              0xE8,
+		Exec:                INX,
+	},
+	0xEC: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "CPX",
+		Opcode:              0xEC,
+		Exec:                CPX,
+	},
+	0xEE: Instruction{
+		Bytes:               3,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "INC",
+		Opcode:              0xEE,
+		Exec:                INC,
+	},
+	0xF0: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Relative,
+		Assembly:            "BEQ",
+		Opcode:              0xF0,
+		Exec:                BEQ,
+	},
+	0xFE: Instruction{
+		Bytes:               3,
+		Cycles:              7,
+		AddCycleOnPageCross: false,
+		AddressingMode:      AbsoluteX,
+		Assembly:            "INC",
+		Opcode:              0xFE,
+		Exec:                INC,
+	},
+	0xF6: Instruction{
+		Bytes:               2,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageX,
+		Assembly:            "INC",
+		Opcode:              0xF6,
+		Exec:                INC,
+	},
+}
+
+var AND = func(cpu *CPU, context *InstructionContext) {
+	cpu.A = (cpu.A & cpu.Memory[context.Address])
+	cpu.setZeroAndNegativeFlags(cpu.A)
+}
+
+var ADC = func(cpu *CPU, context *InstructionContext) {
+	accumulator := cpu.A
+	operand := cpu.Memory[context.Address]
+	carry := cpu.flagToInt(cpu.CFlag)
+
+	cpu.A = accumulator + operand + carry
+
+	if cpu.A < accumulator {
+		cpu.CFlag = true
+	} else {
+		cpu.CFlag = false
+	}
+
+	// Formula for setting the overflow flag taken from:
+	// http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
+	if ((accumulator ^ cpu.A) & (operand ^ cpu.A) & 0x80) != 0 {
+		cpu.VFlag = true
+	} else {
+		cpu.VFlag = false
+	}
+
+	cpu.setZeroAndNegativeFlags(cpu.A)
+}
+
+var ASL = func(cpu *CPU, context *InstructionContext) {
+	var operand byte
+
+	if cpu.A&0x80 != 0 {
+		cpu.CFlag = true
+	} else {
+		cpu.CFlag = false
+	}
+
+	if context.AddressingMode == Accumulator {
+		operand = cpu.A
+	} else {
+		operand = cpu.Memory[context.Address]
+	}
+
+	cpu.A = operand << 1
+	cpu.setZeroAndNegativeFlags(cpu.A)
+}
+
+var BCC = func(cpu *CPU, context *InstructionContext) {
+	if !cpu.CFlag {
+		branchRelative(cpu, context)
+	}
+}
+
+var BCS = func(cpu *CPU, context *InstructionContext) {
+	if cpu.CFlag {
+		branchRelative(cpu, context)
+	}
+}
+
+var BEQ = func(cpu *CPU, context *InstructionContext) {
+	if cpu.ZFlag {
+		branchRelative(cpu, context)
+	}
+}
+
+var BIT = func(cpu *CPU, context *InstructionContext) {
+	operand := cpu.Memory[context.Address]
+	if (cpu.A & operand) == 0 {
+		cpu.ZFlag = true
+	} else {
+		cpu.ZFlag = false
+	}
+
+	cpu.NFlag = cpu.intToFlag(operand & 0x80)
+	cpu.VFlag = cpu.intToFlag(operand & 0x40)
+}
+
+var BMI = func(cpu *CPU, context *InstructionContext) {
+	if cpu.NFlag {
+		branchRelative(cpu, context)
+	}
+}
+
+var BNE = func(cpu *CPU, context *InstructionContext) {
+	if !cpu.ZFlag {
+		branchRelative(cpu, context)
+	}
+}
+
+var BPL = func(cpu *CPU, context *InstructionContext) {
+	if !cpu.NFlag {
+		branchRelative(cpu, context)
+	}
+}
+
+var BRK = func(cpu *CPU, context *InstructionContext) {
+	// push the PC onto the stack
+	cpu.stackPush(byte(cpu.PC >> 8)) // high byte first
+	cpu.stackPush(byte(cpu.PC))      // then the low byte
+	// push the status flags onto the stack
+	cpu.stackPush(cpu.flagsToByte())
+	// load the interrupt address from $FFFE and $FFFF
+	lo := uint16(cpu.Memory[0xFFFE])
+	hi := uint16(cpu.Memory[0xFFFF])
+	cpu.PC = (hi << 8) | lo
+	// Set the break flag
+	cpu.BFlag = true // When does this get unset?
+}
+
+var BVC = func(cpu *CPU, context *InstructionContext) {
+	if !cpu.VFlag {
+		branchRelative(cpu, context)
+	}
+}
+
+var BVS = func(cpu *CPU, context *InstructionContext) {
+	if cpu.VFlag {
+		branchRelative(cpu, context)
+	}
+}
+
+var CLC = func(cpu *CPU, context *InstructionContext) {
+	cpu.CFlag = false
+}
+
+var CLI = func(cpu *CPU, context *InstructionContext) {
+	cpu.IFlag = false
+}
+
+var CLV = func(cpu *CPU, context *InstructionContext) {
+	cpu.VFlag = false
+}
+
+var CMP = func(cpu *CPU, context *InstructionContext) {
+	compare(cpu, cpu.A, cpu.Memory[context.Address])
+}
+
+var CPX = func(cpu *CPU, context *InstructionContext) {
+	compare(cpu, cpu.X, cpu.Memory[context.Address])
+}
+
+var CPY = func(cpu *CPU, context *InstructionContext) {
+	compare(cpu, cpu.Y, cpu.Memory[context.Address])
+}
+
+var DEC = func(cpu *CPU, context *InstructionContext) {
+	cpu.Memory[context.Address] = decrement(cpu, cpu.Memory[context.Address])
+}
+
+var DEX = func(cpu *CPU, context *InstructionContext) {
+	cpu.X = decrement(cpu, cpu.X)
+}
+
+var DEY = func(cpu *CPU, context *InstructionContext) {
+	cpu.Y = decrement(cpu, cpu.Y)
+}
+
+var EOR = func(cpu *CPU, context *InstructionContext) {
+	operand := cpu.Memory[context.Address]
+	cpu.A = cpu.A ^ operand
+	cpu.setZeroAndNegativeFlags(cpu.A)
+}
+
+var INC = func(cpu *CPU, context *InstructionContext) {
+	cpu.Memory[context.Address] = increment(cpu, cpu.Memory[context.Address])
+}
+
+var INX = func(cpu *CPU, context *InstructionContext) {
+	cpu.X = increment(cpu, cpu.X)
+}
+
+var INY = func(cpu *CPU, context *InstructionContext) {
+	cpu.Y = increment(cpu, cpu.Y)
+}
+
+var JMP = func(cpu *CPU, context *InstructionContext) {
+	cpu.PC = context.Address
+}
+
+var JSR = func(cpu *CPU, context *InstructionContext) {
+	cpu.stackPush16(cpu.PC - 1)
+	cpu.PC = context.Address
 }
 
 func fakeFunctionNeverCalled() {
@@ -76,619 +912,9 @@ func decrement(cpu *CPU, target byte) byte {
 	return result
 }
 
-var AND = Instruction{
-	Assembly: "AND",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		cpu.A = (cpu.A & cpu.Memory[context.Address])
-		cpu.setZeroAndNegativeFlags(cpu.A)
-	},
+func increment(cpu *CPU, target byte) byte {
+	result := target + 1
+	cpu.setZeroAndNegativeFlags(result)
+
+	return result
 }
-
-var ADC = Instruction{
-	Assembly: "ADC",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		accumulator := cpu.A
-		operand := cpu.Memory[context.Address]
-		carry := cpu.flagToInt(cpu.CFlag)
-
-		cpu.A = accumulator + operand + carry
-
-		if cpu.A < accumulator {
-			cpu.CFlag = true
-		} else {
-			cpu.CFlag = false
-		}
-
-		// Formula for setting the overflow flag taken from:
-		// http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
-		if ((accumulator ^ cpu.A) & (operand ^ cpu.A) & 0x80) != 0 {
-			cpu.VFlag = true
-		} else {
-			cpu.VFlag = false
-		}
-
-		cpu.setZeroAndNegativeFlags(cpu.A)
-	},
-}
-
-var ASL = Instruction{
-	Assembly: "ASL",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		var operand byte
-
-		if cpu.A&0x80 != 0 {
-			cpu.CFlag = true
-		} else {
-			cpu.CFlag = false
-		}
-
-		if context.Mode == Accumulator {
-			operand = cpu.A
-		} else {
-			operand = cpu.Memory[context.Address]
-		}
-
-		cpu.A = operand << 1
-
-		cpu.setZeroAndNegativeFlags(cpu.A)
-	},
-}
-
-var BCC = Instruction{
-	Assembly: "BCC",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		if !cpu.CFlag {
-			branchRelative(cpu, context)
-		}
-	},
-}
-
-var BCS = Instruction{
-	Assembly: "BCS",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		if cpu.CFlag {
-			branchRelative(cpu, context)
-		}
-	},
-}
-
-var BEQ = Instruction{
-	Assembly: "BEQ",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		if cpu.ZFlag {
-			branchRelative(cpu, context)
-		}
-	},
-}
-
-var BIT = Instruction{
-	Assembly: "BIT",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		operand := cpu.Memory[context.Address]
-		if (cpu.A & operand) == 0 {
-			cpu.ZFlag = true
-		} else {
-			cpu.ZFlag = false
-		}
-
-		cpu.NFlag = cpu.intToFlag(operand & 0x80)
-		cpu.VFlag = cpu.intToFlag(operand & 0x40)
-	},
-}
-
-var BMI = Instruction{
-	Assembly: "BMI",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		if cpu.NFlag {
-			branchRelative(cpu, context)
-		}
-	},
-}
-
-var BNE = Instruction{
-	Assembly: "BNE",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		if !cpu.ZFlag {
-			branchRelative(cpu, context)
-		}
-	},
-}
-
-var BPL = Instruction{
-	Assembly: "BPL",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		if !cpu.NFlag {
-			branchRelative(cpu, context)
-		}
-	},
-}
-
-var BRK = Instruction{
-	Assembly: "BRK",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		// push the PC onto the stack
-		cpu.stackPush(byte(cpu.PC >> 8)) // high byte first
-		cpu.stackPush(byte(cpu.PC))      // then the low byte
-		// push the status flags onto the stack
-		cpu.stackPush(cpu.flagsToByte())
-		// load the interrupt address from $FFFE and $FFFF
-		lo := uint16(cpu.Memory[0xFFFE])
-		hi := uint16(cpu.Memory[0xFFFF])
-		cpu.PC = (hi << 8) | lo
-		// Set the break flag
-		cpu.BFlag = true // When does this get unset?
-	},
-}
-
-var BVC = Instruction{
-	Assembly: "BVC",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		if !cpu.VFlag {
-			branchRelative(cpu, context)
-		}
-	},
-}
-
-var BVS = Instruction{
-	Assembly: "BVS",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		if cpu.VFlag {
-			branchRelative(cpu, context)
-		}
-	},
-}
-
-var CLC = Instruction{
-	Assembly: "CLC",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		cpu.CFlag = false
-	},
-}
-
-var CLI = Instruction{
-	Assembly: "CLI",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		cpu.IFlag = false
-	},
-}
-
-var CLV = Instruction{
-	Assembly: "CLV",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		cpu.VFlag = false
-	},
-}
-
-var CMP = Instruction{
-	Assembly: "CMP",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		compare(cpu, cpu.A, cpu.Memory[context.Address])
-	},
-}
-
-var CPX = Instruction{
-	Assembly: "CPX",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		compare(cpu, cpu.X, cpu.Memory[context.Address])
-	},
-}
-
-var CPY = Instruction{
-	Assembly: "CPY",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		compare(cpu, cpu.Y, cpu.Memory[context.Address])
-	},
-}
-
-var DEC = Instruction{
-	Assembly: "DEC",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		cpu.Memory[context.Address] = decrement(cpu, cpu.Memory[context.Address])
-	},
-}
-
-var DEX = Instruction{
-	Assembly: "DEX",
-	Exec: func(cpu *CPU, context *InstructionContext) {
-		cpu.X = decrement(cpu, cpu.X)
-	},
-}
-
-var instructionMap = map[uint8]Instruction{
-	0x00: BRK,
-	0x06: ASL,
-	0x0A: ASL,
-	0x0E: ASL,
-	0x10: BPL,
-	0x16: ASL,
-	0x18: CLC,
-	0x1E: ASL,
-	0x21: AND,
-	0x24: BIT,
-	0x25: AND,
-	0x29: AND,
-	0x2C: BIT,
-	0x2D: AND,
-	0x30: BMI,
-	0x31: AND,
-	0x35: AND,
-	0x3D: AND,
-	0x39: AND,
-	0x50: BVC,
-	0x58: CLI,
-	0x61: ADC,
-	0x65: ADC,
-	0x69: ADC,
-	0x6D: ADC,
-	0x70: BVS,
-	0x71: ADC,
-	0x75: ADC,
-	0x7D: ADC,
-	0x79: ADC,
-	0x90: BCC,
-	0xB0: BCS,
-	0xB8: CLV,
-	0xC0: CPY,
-	0xC1: CMP,
-	0xC4: CPY,
-	0xC5: CMP,
-	0xC6: DEC,
-	0xC9: CMP,
-	0xCA: DEX,
-	0xCC: CPY,
-	0xCD: CMP,
-	0xCE: DEC,
-	0xD0: BNE,
-	0xD1: CMP,
-	0xD5: CMP,
-	0xD6: DEC,
-	0xD9: CMP,
-	0xDD: CMP,
-	0xDE: DEC,
-	0xE0: CPX,
-	0xE4: CPX,
-	0xEC: CPX,
-	0xF0: BEQ,
-}
-
-var addressingModeMap = map[uint8]AddressingMode{
-	0x00: Implied,
-	0x06: ZeroPage,
-	0x0A: Accumulator,
-	0x0E: Absolute,
-	0x10: Relative,
-	0x16: ZeroPageX,
-	0x18: Implied,
-	0x1E: AbsoluteX,
-	0x21: IndexedIndirect,
-	0x24: ZeroPage,
-	0x25: ZeroPage,
-	0x29: Immediate,
-	0x2C: Absolute,
-	0x2D: Absolute,
-	0x30: Relative,
-	0x31: IndirectIndexed,
-	0x35: ZeroPageX,
-	0x3D: AbsoluteX,
-	0x39: AbsoluteY,
-	0x50: Relative,
-	0x58: Implied,
-	0x61: IndexedIndirect,
-	0x65: ZeroPage,
-	0x69: Immediate,
-	0x6D: Absolute,
-	0x70: Relative,
-	0x71: IndirectIndexed,
-	0x75: ZeroPageX,
-	0x7D: AbsoluteX,
-	0x79: AbsoluteY,
-	0x90: Relative,
-	0xB0: Relative,
-	0xB8: Implied,
-	0xC0: Immediate,
-	0xC1: IndexedIndirect,
-	0xC4: ZeroPage,
-	0xC5: ZeroPage,
-	0xC6: ZeroPage,
-	0xC9: Immediate,
-	0xCA: Immediate,
-	0xCC: Absolute,
-	0xCD: Absolute,
-	0xCE: Absolute,
-	0xD0: Relative,
-	0xD1: IndirectIndexed,
-	0xD5: ZeroPageX,
-	0xD6: ZeroPageX,
-	0xD9: AbsoluteY,
-	0xDD: AbsoluteX,
-	0xDE: AbsoluteX,
-	0xE0: Immediate,
-	0xE4: ZeroPage,
-	0xEC: Absolute,
-	0xF0: Relative,
-}
-
-var instructionMetadata = map[uint8]InstructionMetadata{
-	0x00: InstructionMetadata{
-		Cycles: seven,
-		Bytes:  2,
-	},
-	0x06: InstructionMetadata{
-		Cycles: five,
-		Bytes:  2,
-	},
-	0x0A: InstructionMetadata{
-		Cycles: two,
-		Bytes:  1,
-	},
-	0x0E: InstructionMetadata{
-		Cycles: six,
-		Bytes:  3,
-	},
-	0x10: InstructionMetadata{
-		Cycles: two,
-		Bytes:  2,
-	},
-	0x16: InstructionMetadata{
-		Cycles: six,
-		Bytes:  2,
-	},
-	0x18: InstructionMetadata{
-		Cycles: two,
-		Bytes:  1,
-	},
-	0x1E: InstructionMetadata{
-		Cycles: seven,
-		Bytes:  3,
-	},
-	0x21: InstructionMetadata{
-		Cycles: six,
-		Bytes:  2,
-	},
-	0x24: InstructionMetadata{
-		Cycles: three,
-		Bytes:  2,
-	},
-	0x25: InstructionMetadata{
-		Cycles: three,
-		Bytes:  2,
-	},
-	0x29: InstructionMetadata{
-		Cycles: two,
-		Bytes:  2,
-	},
-	0x2C: InstructionMetadata{
-		Cycles: four,
-		Bytes:  3,
-	},
-	0x2D: InstructionMetadata{
-		Cycles: four,
-		Bytes:  3,
-	},
-	0x30: InstructionMetadata{
-		Cycles: two,
-		Bytes:  2,
-	},
-	0x31: InstructionMetadata{
-		Cycles: fiveIncrementOnPageCross,
-		Bytes:  2,
-	},
-	0x35: InstructionMetadata{
-		Cycles: four,
-		Bytes:  2,
-	},
-	0x3D: InstructionMetadata{
-		Cycles: fourIncrementOnPageCross,
-		Bytes:  3,
-	},
-	0x39: InstructionMetadata{
-		Cycles: fourIncrementOnPageCross,
-		Bytes:  3,
-	},
-	0x50: InstructionMetadata{
-		Cycles: two,
-		Bytes:  2,
-	},
-	0x58: InstructionMetadata{
-		Cycles: two,
-		Bytes:  1,
-	},
-	0x65: InstructionMetadata{
-		Cycles: three,
-		Bytes:  2,
-	},
-	0x61: InstructionMetadata{
-		Cycles: six,
-		Bytes:  2,
-	},
-	0x69: InstructionMetadata{
-		Cycles: two,
-		Bytes:  2,
-	},
-	0x6D: InstructionMetadata{
-		Cycles: four,
-		Bytes:  3,
-	},
-	0x70: InstructionMetadata{
-		Cycles: two,
-		Bytes:  2,
-	},
-	0x71: InstructionMetadata{
-		Cycles: fiveIncrementOnPageCross,
-		Bytes:  2,
-	},
-	0x75: InstructionMetadata{
-		Cycles: four,
-		Bytes:  2,
-	},
-	0x7D: InstructionMetadata{
-		Cycles: fourIncrementOnPageCross,
-		Bytes:  3,
-	},
-	0x79: InstructionMetadata{
-		Cycles: fourIncrementOnPageCross,
-		Bytes:  3,
-	},
-	0x90: InstructionMetadata{
-		Cycles: two,
-		Bytes:  2,
-	},
-	0xB0: InstructionMetadata{
-		Cycles: two,
-		Bytes:  2,
-	},
-	0xB8: InstructionMetadata{
-		Cycles: two,
-		Bytes:  1,
-	},
-	0xC0: InstructionMetadata{
-		Cycles: two,
-		Bytes:  2,
-	},
-	0xC1: InstructionMetadata{
-		Cycles: six,
-		Bytes:  2,
-	},
-	0xC4: InstructionMetadata{
-		Cycles: three,
-		Bytes:  2,
-	},
-	0xC5: InstructionMetadata{
-		Cycles: three,
-		Bytes:  2,
-	},
-	0xC6: InstructionMetadata{
-		Cycles: five,
-		Bytes:  2,
-	},
-	0xC9: InstructionMetadata{
-		Cycles: two,
-		Bytes:  2,
-	},
-	0xCA: InstructionMetadata{
-		Cycles: two,
-		Bytes:  1,
-	},
-	0xCC: InstructionMetadata{
-		Cycles: four,
-		Bytes:  3,
-	},
-	0xCD: InstructionMetadata{
-		Cycles: four,
-		Bytes:  3,
-	},
-	0xCE: InstructionMetadata{
-		Cycles: six,
-		Bytes:  3,
-	},
-	0xD0: InstructionMetadata{
-		Cycles: two,
-		Bytes:  2,
-	},
-	0xD1: InstructionMetadata{
-		Cycles: fiveIncrementOnPageCross,
-		Bytes:  2,
-	},
-	0xD5: InstructionMetadata{
-		Cycles: four,
-		Bytes:  2,
-	},
-	0xD6: InstructionMetadata{
-		Cycles: six,
-		Bytes:  2,
-	},
-	0xD9: InstructionMetadata{
-		Cycles: fourIncrementOnPageCross,
-		Bytes:  3,
-	},
-	0xDD: InstructionMetadata{
-		Cycles: fourIncrementOnPageCross,
-		Bytes:  3,
-	},
-	0xDE: InstructionMetadata{
-		Cycles: seven,
-		Bytes:  3,
-	},
-	0xE0: InstructionMetadata{
-		Cycles: two,
-		Bytes:  2,
-	},
-	0xE4: InstructionMetadata{
-		Cycles: three,
-		Bytes:  2,
-	},
-	0xEC: InstructionMetadata{
-		Cycles: four,
-		Bytes:  3,
-	},
-	0xF0: InstructionMetadata{
-		Cycles: two,
-		Bytes:  2,
-	},
-}
-
-func two(context *InstructionContext) uint {
-	return 2
-}
-
-func three(context *InstructionContext) uint {
-	return 3
-}
-
-func four(context *InstructionContext) uint {
-	return 4
-}
-
-func five(context *InstructionContext) uint {
-	return 5
-}
-
-func six(context *InstructionContext) uint {
-	return 6
-}
-
-func seven(context *InstructionContext) uint {
-	return 7
-}
-
-func fourIncrementOnPageCross(context *InstructionContext) uint {
-	if context.PageCrossed {
-		return 5
-	} else {
-		return 4
-	}
-}
-
-func fiveIncrementOnPageCross(context *InstructionContext) uint {
-	if context.PageCrossed {
-		return 6
-	} else {
-		return 5
-	}
-}
-
-// TODO: Potential refactor of instruction struct, metadata, and map.
-//       Would allow the use of a single map to lookup instructions
-//       and their metadata.
-//
-// type InstructionRefactor struct {
-// 	Cycles func(context *InstructionContext) uint
-// 	Bytes  uint16
-//  AddCycleOnPageCross bool
-//  AddressingMode AddressingMode
-//  Assembly string
-//  Opcode   byte
-// 	Exec     func(*InstructionContext)
-// }
-//
-// var instructionMap = map[uint8]InstructionRefactor{
-// 	0x21: Instruction{
-// 		Cycles: 6,
-// 		Bytes:  2,
-// 		AddCycleOnPageCross: true,
-//      AddressingMode: Immediate,
-//      Assembly: "AND",
-//      Opcode: 0x21
-// 		Exec: AND,
-// 	},
-// }

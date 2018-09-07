@@ -31,18 +31,20 @@ func (cpu *CPU) Print() {
 func (cpu *CPU) Exec() {
 	opcode := cpu.Memory[cpu.PC]
 	context := context(cpu, opcode)
-	instruction := instructionMap[opcode]
-	metadata := instructionMetadata[opcode]
 
 	if cpu.Debug {
 		fmt.Println("Beginning execution...")
-		fmt.Printf("Opcode: %#x, Addressing Mode: %d, Address: %d\n", opcode, context.Mode, context.Address)
+		//fmt.Printf("Opcode: %#x, Addressing Mode: %d, Address: %d\n", opcode, context.Mode, context.Address)
 		cpu.Print()
 	}
 
-	cpu.PC += metadata.Bytes
+	instruction := instructionMap[opcode]
+	cpu.PC += instruction.Bytes
 	instruction.Exec(cpu, context)
-	cpu.Cycles += metadata.Cycles(context)
+	cpu.Cycles += instruction.Cycles
+	if context.PageCrossed && instruction.AddCycleOnPageCross {
+		cpu.Cycles += 1
+	}
 
 	if cpu.Debug {
 		fmt.Println("Finished execution")
@@ -92,6 +94,18 @@ func (cpu *CPU) flagsToByte() byte {
 		(cpu.flagToInt(cpu.CFlag) << 0)
 }
 
+func (cpu *CPU) stackPush16(value uint16) {
+	cpu.stackPush(byte(value >> 8)) // high byte first
+	cpu.stackPush(byte(value))      // then the low byte
+}
+
+func (cpu *CPU) stackPop16() uint16 {
+	lo := cpu.stackPop()
+	hi := cpu.stackPop()
+	return uint16(hi)<<8 | uint16(lo)
+
+}
+
 func (cpu *CPU) stackPush(value byte) {
 	cpu.Memory[0x100|uint16(cpu.SP)] = value
 	cpu.SP -= 1
@@ -104,50 +118,61 @@ func (cpu *CPU) stackPop() byte {
 
 func context(cpu *CPU, opcode byte) *InstructionContext {
 	var address uint16
+	var pageCrossed = false
+	var mode = instructionMap[opcode].AddressingMode
 
-	pageCrossed := false
-	mode := addressingModeMap[opcode]
-
-	if mode == Immediate {
+	switch mode {
+	case Immediate:
 		address = cpu.PC + 1
-	} else if mode == ZeroPage {
+	case ZeroPage:
 		address = uint16(cpu.Memory[cpu.PC+1]) & 0x00FF
-	} else if mode == ZeroPageX {
+	case ZeroPageX:
 		address = uint16(cpu.Memory[cpu.PC+1]+cpu.X) & 0x00FF
-	} else if mode == Absolute {
+	case Absolute:
 		address = uint16(cpu.Memory[cpu.PC+2])<<8 | uint16(cpu.Memory[cpu.PC+1])
-	} else if mode == AbsoluteX {
+	case AbsoluteX:
 		address = (uint16(cpu.Memory[cpu.PC+2])<<8 | uint16(cpu.Memory[cpu.PC+1])) + uint16(cpu.X)
 		if (address & 0x00FF) < uint16(cpu.X) {
 			pageCrossed = true
 		}
-	} else if mode == AbsoluteY {
+	case AbsoluteY:
 		address = (uint16(cpu.Memory[cpu.PC+2])<<8 | uint16(cpu.Memory[cpu.PC+1])) + uint16(cpu.Y)
 		if (address & 0x00FF) < uint16(cpu.Y) {
 			pageCrossed = true
 		}
-	} else if mode == IndexedIndirect {
+	case IndexedIndirect:
 		intermediateAddress := (uint8(cpu.Memory[cpu.PC+1]) + cpu.X)
 		address = uint16(cpu.Memory[intermediateAddress])
-	} else if mode == IndirectIndexed {
+	case IndirectIndexed:
 		intermediateAddress := cpu.Memory[cpu.PC+1]
 		address = uint16(cpu.Memory[intermediateAddress]) + uint16(cpu.Y)
 		if (address & 0x00FF) < uint16(cpu.Y) {
 			pageCrossed = true
 		}
-	} else if mode == Relative {
+	case Relative:
 		address = cpu.PC + 1
-	} else if mode == Implied {
-	} else {
-		// WIP: garbage value for now, later this should probably be a switch statement
-		// and blow up if we don't know the addressing mode
-		address = 0x00
+	case Indirect:
+		// NOTE: This addressing mode implements a hardware bug.
+		// The operand of the instruction is an intermediate address.
+		// This intermediate address contains the low byte of the JMP target address.
+		// The high byte of the JMP target address is stored in the following address
+		// (intermediate address + 1). However If the intermediate address falls on a
+		// memory page boundary (i.e. the first byte is on $xxFF, where xx is any number),
+		// it does not correctly look at the next page when reading the high byte of the
+		// JMP target address. A concrete example: If the instruction has the operand $10FF,
+		// it will read the LSB of the JMP address from $10FF, but will read the MSB of the JMP
+		// address from $1000 instead of $1100.
+		intermediateLo := uint16(cpu.Memory[cpu.PC+2])<<8 | uint16(cpu.Memory[cpu.PC+1])
+		intermediateHi := (intermediateLo & 0xFF00) | ((intermediateLo + 1) & 0x00FF) // this is the bug
+		address = uint16(cpu.Memory[intermediateHi])<<8 | uint16(cpu.Memory[intermediateLo])
+	case Implied:
+		// this case intentionally left blank :O
 	}
 
 	return &InstructionContext{
-		Mode:        mode,
-		PageCrossed: pageCrossed,
-		Address:     address,
+		PageCrossed:    pageCrossed,
+		Address:        address,
+		AddressingMode: mode,
 	}
 }
 

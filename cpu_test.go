@@ -2311,3 +2311,568 @@ func TestDEX(t *testing.T) {
 		t.Error("did not correctly update PC")
 	}
 }
+
+func TestDEY(t *testing.T) {
+	cpu := NewCPU()
+	cpu.Y = 0x02
+	cpu.NFlag = true
+	cpu.ZFlag = true
+	cpu.Memory[0] = 0x88
+	cpu.Exec()
+
+	if cpu.Y != 0x01 {
+		t.Error("failed to update Y register correctly, got", cpu.Y)
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 1 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestEORImmediate(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = true
+	cpu.NFlag = true
+	cpu.A = 0x06
+	cpu.Memory[0] = 0x49
+	cpu.Memory[1] = 0x05
+	cpu.Exec()
+
+	if cpu.A != 0x03 {
+		t.Error("did not correclty set accumulator, got", cpu.A)
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+}
+
+func TestEORZeroPage(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x00
+	cpu.Memory[0] = 0x45
+	cpu.Memory[1] = 0x05
+	cpu.Memory[5] = 0x00
+	cpu.Exec()
+
+	if cpu.A != 0x00 {
+		t.Error("did not correclty set accumulator, got", cpu.A)
+	}
+
+	if cpu.Cycles != 3 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+
+	if cpu.ZFlag != true {
+		t.Error("set zero flag incorrectly")
+	}
+}
+
+func TestEORZeroPageX(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x80
+	cpu.X = 0x01
+	cpu.Memory[0] = 0x55
+	cpu.Memory[1] = 0x04
+	cpu.Memory[5] = 0x01
+	cpu.Exec()
+
+	if cpu.A != 0x81 {
+		t.Error("did not correclty set accumulator, got", cpu.A)
+	}
+
+	if cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("set zero flag incorrectly")
+	}
+}
+
+func TestEORAbsolute(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x03
+	cpu.Memory[0] = 0x4D
+	cpu.Memory[1] = 0x01
+	cpu.Memory[2] = 0xFF
+	cpu.Memory[0xFF01] = 0x00
+	cpu.Exec()
+
+	if cpu.A != 0x03 {
+		t.Error("failed to give correct Accumulator value, gave", cpu.A)
+	}
+
+	if cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 3 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestEORAbsoluteX(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x04
+	cpu.X = 0x01
+	cpu.Memory[0] = 0x5D
+	cpu.Memory[1] = 0x01
+	cpu.Memory[2] = 0xFF
+	cpu.Memory[0xFF02] = 0x01
+	cpu.Exec()
+
+	if cpu.A != 0x05 {
+		t.Error("failed to give correct Accumulator value, gave", cpu.A)
+	}
+
+	if cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 3 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestEORAbsoluteXWithPageCross(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x04
+	cpu.X = 0x01
+	cpu.Memory[0] = 0x5D
+	cpu.Memory[1] = 0xFF
+	cpu.Memory[2] = 0x00
+	cpu.Memory[0x0100] = 0x01
+	cpu.Exec()
+
+	if cpu.A != 0x05 {
+		t.Error("failed to give correct Accumulator value, gave", cpu.A)
+	}
+
+	if cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestEORAbsoluteY(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x04
+	cpu.Y = 0x01
+	cpu.Memory[0] = 0x59
+	cpu.Memory[1] = 0x01
+	cpu.Memory[2] = 0xFF
+	cpu.Memory[0xFF02] = 0x01
+	cpu.Exec()
+
+	if cpu.A != 0x05 {
+		t.Error("failed to give correct Accumulator value, gave", cpu.A)
+	}
+
+	if cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 3 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestEORAbsoluteYWithPageCross(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x04
+	cpu.Y = 0x01
+	cpu.Memory[0] = 0x59
+	cpu.Memory[1] = 0xFF
+	cpu.Memory[2] = 0x00
+	cpu.Memory[0x0100] = 0x01
+	cpu.Exec()
+
+	if cpu.A != 0x05 {
+		t.Error("failed to give correct Accumulator value, gave", cpu.A)
+	}
+
+	if cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestEORIndexedIndirect(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x05
+	cpu.X = 0x01
+	cpu.Memory[0] = 0x41
+	cpu.Memory[1] = 0xFE
+	cpu.Memory[9] = 0x01
+	cpu.Memory[0xFF] = 0x09
+	cpu.Exec()
+
+	if cpu.A != 0x04 {
+		t.Error("failed to give correct Accumulator value, gave", cpu.A)
+	}
+
+	if cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestEORIndirectIndexed(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x04
+	cpu.Y = 0x01
+	cpu.Memory[0] = 0x51
+	cpu.Memory[1] = 0x02
+	cpu.Memory[2] = 0x05
+	cpu.Memory[6] = 0x05
+	cpu.Exec()
+
+	if cpu.A != 0x01 {
+		t.Error("failed to give correct Accumulator value, gave", cpu.A)
+	}
+
+	if cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestEORIndirectIndexedWithPageCross(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x05
+	cpu.Y = 0x01
+	cpu.Memory[0] = 0x51
+	cpu.Memory[1] = 0x02
+	cpu.Memory[2] = 0xFF
+	cpu.Memory[0x100] = 0x01
+	cpu.Exec()
+
+	if cpu.A != 0x04 {
+		t.Error("failed to give correct Accumulator value, gave", cpu.A)
+	}
+
+	if cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestINCZeroPage(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = true
+	cpu.NFlag = true
+	cpu.Memory[0] = 0xE6
+	cpu.Memory[1] = 0x0A
+	cpu.Memory[10] = 0x02
+	cpu.Exec()
+
+	if cpu.Memory[10] != 0x03 {
+		t.Error("failed to update memory value correclty, got", cpu.Memory[10])
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestINCZeroPageWithNegativeResult(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = true
+	cpu.Memory[0] = 0xE6
+	cpu.Memory[1] = 0x0A
+	cpu.Memory[10] = 0x7F
+	cpu.Exec()
+
+	if cpu.Memory[10] != 0x80 {
+		t.Error("failed to update memory value correclty, got", cpu.Memory[10])
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestINCZeroPageX(t *testing.T) {
+	cpu := NewCPU()
+	cpu.NFlag = true
+	cpu.ZFlag = true
+	cpu.X = 0x1
+	cpu.Memory[0] = 0xF6
+	cpu.Memory[1] = 0x09
+	cpu.Memory[10] = 0x01
+	cpu.Exec()
+
+	if cpu.Memory[10] != 0x02 {
+		t.Error("failed to update memory value correclty, got", cpu.Memory[10])
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestINCAbsolute(t *testing.T) {
+	cpu := NewCPU()
+	cpu.NFlag = true
+	cpu.ZFlag = false
+	cpu.Memory[0] = 0xEE
+	cpu.Memory[1] = 0x09
+	cpu.Memory[2] = 0x09
+	cpu.Memory[0x0909] = 0xFF
+	cpu.Exec()
+
+	if cpu.Memory[0x0909] != 0x00 {
+		t.Error("failed to update memory value correclty, got", cpu.Memory[0x0909])
+	}
+
+	if cpu.ZFlag != true {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 3 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestINCAbsoluteX(t *testing.T) {
+	cpu := NewCPU()
+	cpu.X = 0x01
+	cpu.NFlag = true
+	cpu.ZFlag = true
+	cpu.Memory[0] = 0xFE
+	cpu.Memory[1] = 0x09
+	cpu.Memory[2] = 0x09
+	cpu.Memory[0x090A] = 0x02
+	cpu.Exec()
+
+	if cpu.Memory[0x090A] != 0x03 {
+		t.Error("failed to update memory value correclty, got", cpu.Memory[0x090A])
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 7 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 3 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestINX(t *testing.T) {
+	cpu := NewCPU()
+	cpu.X = 0x02
+	cpu.NFlag = true
+	cpu.ZFlag = true
+	cpu.Memory[0] = 0xE8
+	cpu.Exec()
+
+	if cpu.X != 0x03 {
+		t.Error("failed to update X register correctly, got", cpu.X)
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 1 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestINY(t *testing.T) {
+	cpu := NewCPU()
+	cpu.Y = 0x02
+	cpu.NFlag = true
+	cpu.ZFlag = true
+	cpu.Memory[0] = 0xC8
+	cpu.Exec()
+
+	if cpu.Y != 0x03 {
+		t.Error("failed to update Y register correctly, got", cpu.Y)
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 1 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestJMPAbsolute(t *testing.T) {
+	cpu := NewCPU()
+	cpu.Memory[0] = 0x4C
+	cpu.Memory[1] = 0x01
+	cpu.Memory[2] = 0x01
+	cpu.Exec()
+
+	if cpu.PC != 0x0101 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 3 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestJMPIndirect(t *testing.T) {
+	cpu := NewCPU()
+	cpu.Memory[0] = 0x6C
+	cpu.Memory[1] = 0x01
+	cpu.Memory[2] = 0x02
+	cpu.Memory[0x0201] = 0x07
+	cpu.Memory[0x0202] = 0x01
+	cpu.Exec()
+
+	if cpu.PC != 0x0107 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestJMPIndirectWithHardwareBug(t *testing.T) {
+	cpu := NewCPU()
+	cpu.Memory[0] = 0x6C
+	cpu.Memory[1] = 0xFF
+	cpu.Memory[2] = 0x02
+	cpu.Memory[0x02FF] = 0x07
+	cpu.Memory[0x0200] = 0x01
+	cpu.Exec()
+
+	if cpu.PC != 0x0107 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestJSR(t *testing.T) {
+	cpu := NewCPU()
+	cpu.Memory[0] = 0x20
+	cpu.Memory[1] = 0x02
+	cpu.Memory[2] = 0x02
+	cpu.Exec()
+
+	if cpu.PC != 0x0202 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	returnAddress := cpu.stackPop16()
+	if returnAddress != 0x02 {
+		t.Error("did not push the expected return address onto the stack, got:", returnAddress)
+	}
+
+	if cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
