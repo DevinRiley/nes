@@ -247,6 +247,15 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x49,
 		Exec:                EOR,
 	},
+	0x4A: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Accumulator,
+		Assembly:            "LSR",
+		Opcode:              0x4A,
+		Exec:                LSR,
+	},
 	0x4C: Instruction{
 		Bytes:               3,
 		Cycles:              3,
@@ -427,6 +436,96 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x90,
 		Exec:                BCC,
 	},
+	0xA0: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Immediate,
+		Assembly:            "LDY",
+		Opcode:              0xA0,
+		Exec:                LDY,
+	},
+	0xA1: Instruction{
+		Bytes:               2,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      IndexedIndirect,
+		Assembly:            "LDA",
+		Opcode:              0xA1,
+		Exec:                LDA,
+	},
+	0xA2: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Immediate,
+		Assembly:            "LDX",
+		Opcode:              0xA2,
+		Exec:                LDX,
+	},
+	0xA4: Instruction{
+		Bytes:               2,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "LDY",
+		Opcode:              0xA4,
+		Exec:                LDY,
+	},
+	0xA5: Instruction{
+		Bytes:               2,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "LDA",
+		Opcode:              0xA5,
+		Exec:                LDA,
+	},
+	0xA6: Instruction{
+		Bytes:               2,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "LDX",
+		Opcode:              0xA6,
+		Exec:                LDX,
+	},
+	0xA9: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Immediate,
+		Assembly:            "LDA",
+		Opcode:              0xA9,
+		Exec:                LDA,
+	},
+	0xAC: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "LDY",
+		Opcode:              0xAC,
+		Exec:                LDY,
+	},
+	0xAD: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "LDA",
+		Opcode:              0xAD,
+		Exec:                LDA,
+	},
+	0xAE: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "LDX",
+		Opcode:              0xAE,
+		Exec:                LDX,
+	},
 	0xB0: Instruction{
 		Bytes:               2,
 		Cycles:              2,
@@ -436,6 +535,42 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0xB0,
 		Exec:                BCS,
 	},
+	0xB1: Instruction{
+		Bytes:               2,
+		Cycles:              5,
+		AddCycleOnPageCross: true,
+		AddressingMode:      IndirectIndexed,
+		Assembly:            "LDA",
+		Opcode:              0xB1,
+		Exec:                LDA,
+	},
+	0xB4: Instruction{
+		Bytes:               2,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageX,
+		Assembly:            "LDY",
+		Opcode:              0xB4,
+		Exec:                LDY,
+	},
+	0xB5: Instruction{
+		Bytes:               2,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageX,
+		Assembly:            "LDA",
+		Opcode:              0xB5,
+		Exec:                LDA,
+	},
+	0xB6: Instruction{
+		Bytes:               2,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageY,
+		Assembly:            "LDX",
+		Opcode:              0xB6,
+		Exec:                LDX,
+	},
 	0xB8: Instruction{
 		Bytes:               1,
 		Cycles:              2,
@@ -444,6 +579,42 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "CLV",
 		Opcode:              0xB8,
 		Exec:                CLV,
+	},
+	0xB9: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteY,
+		Assembly:            "LDA",
+		Opcode:              0xB9,
+		Exec:                LDA,
+	},
+	0xBC: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteX,
+		Assembly:            "LDY",
+		Opcode:              0xBC,
+		Exec:                LDY,
+	},
+	0xBD: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteX,
+		Assembly:            "LDA",
+		Opcode:              0xBD,
+		Exec:                LDA,
+	},
+	0xBE: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteY,
+		Assembly:            "LDX",
+		Opcode:              0xBE,
+		Exec:                LDX,
 	},
 	0xC0: Instruction{
 		Bytes:               2,
@@ -875,9 +1046,39 @@ var JSR = func(cpu *CPU, context *InstructionContext) {
 	cpu.PC = context.Address
 }
 
+var LDA = func(cpu *CPU, context *InstructionContext) {
+	cpu.A = cpu.Memory[context.Address]
+	cpu.setZeroAndNegativeFlags(cpu.A)
+}
+
+var LDX = func(cpu *CPU, context *InstructionContext) {
+	cpu.X = cpu.Memory[context.Address]
+	cpu.setZeroAndNegativeFlags(cpu.X)
+}
+
+var LDY = func(cpu *CPU, context *InstructionContext) {
+	cpu.Y = cpu.Memory[context.Address]
+	cpu.setZeroAndNegativeFlags(cpu.Y)
+}
+
+var LSR = func(cpu *CPU, context *InstructionContext) {
+	var operand *byte
+
+	if context.AddressingMode == Accumulator {
+		operand = &cpu.A
+	} else {
+		operand = &cpu.Memory[context.Address]
+	}
+
+	cpu.CFlag = cpu.intToFlag(*operand & 0x80)
+	*operand = *operand >> 1
+	cpu.setZeroAndNegativeFlags(*operand)
+}
+
 func fakeFunctionNeverCalled() {
 	fmt.Println("So i can keep fmt imported, lol")
 }
+
 func branchRelative(cpu *CPU, context *InstructionContext) {
 	var branchLocation uint16
 

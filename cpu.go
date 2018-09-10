@@ -128,6 +128,8 @@ func context(cpu *CPU, opcode byte) *InstructionContext {
 		address = uint16(cpu.Memory[cpu.PC+1]) & 0x00FF
 	case ZeroPageX:
 		address = uint16(cpu.Memory[cpu.PC+1]+cpu.X) & 0x00FF
+	case ZeroPageY:
+		address = uint16(cpu.Memory[cpu.PC+1]+cpu.Y) & 0x00FF
 	case Absolute:
 		address = uint16(cpu.Memory[cpu.PC+2])<<8 | uint16(cpu.Memory[cpu.PC+1])
 	case AbsoluteX:
