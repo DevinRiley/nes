@@ -11,14 +11,14 @@ type CPU struct {
 	X      uint8
 	Y      uint8
 	F      byte // 8 bit status flags
-	CFlag  bool
-	ZFlag  bool
-	IFlag  bool
-	DFlag  bool
-	BFlag  bool
+	NFlag  bool // negative flag
+	VFlag  bool // overflow flag
 	UFlag  bool // unused
-	VFlag  bool
-	NFlag  bool
+	BFlag  bool // technically unused (doesn't exist on hardware processor)
+	DFlag  bool // decimal flag - no effect on NES
+	IFlag  bool // interrupt disable flag
+	ZFlag  bool // zero flag
+	CFlag  bool // carry flag
 	Cycles uint
 	Memory [100000]byte
 	Debug  bool
@@ -76,11 +76,7 @@ func (cpu *CPU) flagToInt(flag bool) uint8 {
 }
 
 func (cpu *CPU) intToFlag(n uint8) bool {
-	if n == 0 {
-		return false
-	} else {
-		return true
-	}
+	return n != 0
 }
 
 func (cpu *CPU) flagsToByte() byte {
@@ -92,6 +88,17 @@ func (cpu *CPU) flagsToByte() byte {
 		(cpu.flagToInt(cpu.IFlag) << 2) |
 		(cpu.flagToInt(cpu.ZFlag) << 1) |
 		(cpu.flagToInt(cpu.CFlag) << 0)
+}
+
+func (cpu *CPU) byteToFlags(flags byte) {
+	cpu.NFlag = cpu.intToFlag(flags & 0x80)
+	cpu.VFlag = cpu.intToFlag(flags & 0x40)
+	cpu.UFlag = cpu.intToFlag(flags & 0x20)
+	cpu.BFlag = cpu.intToFlag(flags & 0x10)
+	cpu.DFlag = cpu.intToFlag(flags & 0x08)
+	cpu.IFlag = cpu.intToFlag(flags & 0x04)
+	cpu.ZFlag = cpu.intToFlag(flags & 0x02)
+	cpu.CFlag = cpu.intToFlag(flags & 0x01)
 }
 
 func (cpu *CPU) stackPush16(value uint16) {
@@ -124,6 +131,7 @@ func context(cpu *CPU, opcode byte) *InstructionContext {
 	switch mode {
 	case Immediate:
 		address = cpu.PC + 1
+	case Accumulator:
 	case ZeroPage:
 		address = uint16(cpu.Memory[cpu.PC+1]) & 0x00FF
 	case ZeroPageX:
@@ -168,7 +176,6 @@ func context(cpu *CPU, opcode byte) *InstructionContext {
 		intermediateHi := (intermediateLo & 0xFF00) | ((intermediateLo + 1) & 0x00FF) // this is the bug
 		address = uint16(cpu.Memory[intermediateHi])<<8 | uint16(cpu.Memory[intermediateLo])
 	case Implied:
-		// this case intentionally left blank :O
 	}
 
 	return &InstructionContext{

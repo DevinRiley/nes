@@ -49,6 +49,24 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x00,
 		Exec:                BRK,
 	},
+	0x01: Instruction{
+		Bytes:               2,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      IndexedIndirect,
+		Assembly:            "ORA",
+		Opcode:              0x01,
+		Exec:                ORA,
+	},
+	0x05: Instruction{
+		Bytes:               2,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "ORA",
+		Opcode:              0x05,
+		Exec:                ORA,
+	},
 	0x06: Instruction{
 		Bytes:               2,
 		Cycles:              5,
@@ -58,6 +76,24 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x06,
 		Exec:                ASL,
 	},
+	0x08: Instruction{
+		Bytes:               1,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "PHP",
+		Opcode:              0x08,
+		Exec:                PHP,
+	},
+	0x09: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Immediate,
+		Assembly:            "ORA",
+		Opcode:              0x09,
+		Exec:                ORA,
+	},
 	0x0A: Instruction{
 		Bytes:               1,
 		Cycles:              2,
@@ -66,6 +102,15 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "ASL",
 		Opcode:              0x0A,
 		Exec:                ASL,
+	},
+	0x0D: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "ORA",
+		Opcode:              0x0D,
+		Exec:                ORA,
 	},
 	0x0E: Instruction{
 		Bytes:               3,
@@ -85,6 +130,24 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x10,
 		Exec:                BPL,
 	},
+	0x11: Instruction{
+		Bytes:               2,
+		Cycles:              5,
+		AddCycleOnPageCross: true,
+		AddressingMode:      IndirectIndexed,
+		Assembly:            "ORA",
+		Opcode:              0x11,
+		Exec:                ORA,
+	},
+	0x15: Instruction{
+		Bytes:               2,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageX,
+		Assembly:            "ORA",
+		Opcode:              0x15,
+		Exec:                ORA,
+	},
 	0x16: Instruction{
 		Bytes:               2,
 		Cycles:              6,
@@ -102,6 +165,24 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "CLC",
 		Opcode:              0x18,
 		Exec:                CLC,
+	},
+	0x19: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteY,
+		Assembly:            "ORA",
+		Opcode:              0x19,
+		Exec:                ORA,
+	},
+	0x1D: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteX,
+		Assembly:            "ORA",
+		Opcode:              0x1D,
+		Exec:                ORA,
 	},
 	0x1E: Instruction{
 		Bytes:               3,
@@ -148,6 +229,24 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x25,
 		Exec:                AND,
 	},
+	0x26: Instruction{
+		Bytes:               2,
+		Cycles:              5,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "ROL",
+		Opcode:              0x26,
+		Exec:                ROL,
+	},
+	0x28: Instruction{
+		Bytes:               1,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "PLP",
+		Opcode:              0x28,
+		Exec:                PLP,
+	},
 	0x29: Instruction{
 		Bytes:               2,
 		Cycles:              2,
@@ -156,6 +255,15 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "AND",
 		Opcode:              0x29,
 		Exec:                AND,
+	},
+	0x2A: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Accumulator,
+		Assembly:            "ROL",
+		Opcode:              0x2A,
+		Exec:                ROL,
 	},
 	0x2C: Instruction{
 		Bytes:               3,
@@ -174,6 +282,15 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "AND",
 		Opcode:              0x2D,
 		Exec:                AND,
+	},
+	0x2E: Instruction{
+		Bytes:               3,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "ROL",
+		Opcode:              0x2E,
+		Exec:                ROL,
 	},
 	0x30: Instruction{
 		Bytes:               2,
@@ -202,6 +319,24 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x35,
 		Exec:                AND,
 	},
+	0x36: Instruction{
+		Bytes:               2,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageX,
+		Assembly:            "ROL",
+		Opcode:              0x36,
+		Exec:                ROL,
+	},
+	0x38: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "SEC",
+		Opcode:              0x38,
+		Exec:                SEC,
+	},
 	0x39: Instruction{
 		Bytes:               3,
 		Cycles:              4,
@@ -220,6 +355,24 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x3D,
 		Exec:                AND,
 	},
+	0x3E: Instruction{
+		Bytes:               3,
+		Cycles:              7,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteX,
+		Assembly:            "ROL",
+		Opcode:              0x3E,
+		Exec:                ROL,
+	},
+	0x40: Instruction{
+		Bytes:               1,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "RTI",
+		Opcode:              0x40,
+		Exec:                RTI,
+	},
 	0x41: Instruction{
 		Bytes:               2,
 		Cycles:              6,
@@ -237,6 +390,24 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "EOR",
 		Opcode:              0x45,
 		Exec:                EOR,
+	},
+	0x46: Instruction{
+		Bytes:               2,
+		Cycles:              5,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "LSR",
+		Opcode:              0x46,
+		Exec:                LSR,
+	},
+	0x48: Instruction{
+		Bytes:               1,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "PHA",
+		Opcode:              0x48,
+		Exec:                PHA,
 	},
 	0x49: Instruction{
 		Bytes:               2,
@@ -274,6 +445,15 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x4D,
 		Exec:                EOR,
 	},
+	0x4E: Instruction{
+		Bytes:               3,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "LSR",
+		Opcode:              0x4E,
+		Exec:                LSR,
+	},
 	0x50: Instruction{
 		Bytes:               2,
 		Cycles:              2,
@@ -300,6 +480,15 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "EOR",
 		Opcode:              0x50,
 		Exec:                EOR,
+	},
+	0x56: Instruction{
+		Bytes:               2,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageX,
+		Assembly:            "LSR",
+		Opcode:              0x56,
+		Exec:                LSR,
 	},
 	0x58: Instruction{
 		Bytes:               1,
@@ -328,6 +517,24 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x5D,
 		Exec:                EOR,
 	},
+	0x5E: Instruction{
+		Bytes:               3,
+		Cycles:              7,
+		AddCycleOnPageCross: false,
+		AddressingMode:      AbsoluteX,
+		Assembly:            "LSR",
+		Opcode:              0x5E,
+		Exec:                LSR,
+	},
+	0x60: Instruction{
+		Bytes:               1,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "RTS",
+		Opcode:              0x60,
+		Exec:                RTS,
+	},
 	0x61: Instruction{
 		Bytes:               2,
 		Cycles:              6,
@@ -346,6 +553,24 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x65,
 		Exec:                ADC,
 	},
+	0x66: Instruction{
+		Bytes:               2,
+		Cycles:              5,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "ROR",
+		Opcode:              0x66,
+		Exec:                ROR,
+	},
+	0x68: Instruction{
+		Bytes:               1,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "PLA",
+		Opcode:              0x68,
+		Exec:                PLA,
+	},
 	0x69: Instruction{
 		Bytes:               2,
 		Cycles:              2,
@@ -354,6 +579,15 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "ADC",
 		Opcode:              0x69,
 		Exec:                ADC,
+	},
+	0x6A: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Accumulator,
+		Assembly:            "ROR",
+		Opcode:              0x6A,
+		Exec:                ROR,
 	},
 	0x6C: Instruction{
 		Bytes:               3,
@@ -372,6 +606,15 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "ADC",
 		Opcode:              0x6D,
 		Exec:                ADC,
+	},
+	0x6E: Instruction{
+		Bytes:               3,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "ROR",
+		Opcode:              0x6E,
+		Exec:                ROR,
 	},
 	0x70: Instruction{
 		Bytes:               2,
@@ -400,6 +643,24 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x75,
 		Exec:                ADC,
 	},
+	0x76: Instruction{
+		Bytes:               2,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageX,
+		Assembly:            "ROR",
+		Opcode:              0x76,
+		Exec:                ROR,
+	},
+	0x78: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "SEI",
+		Opcode:              0x78,
+		Exec:                SEI,
+	},
 	0x79: Instruction{
 		Bytes:               3,
 		Cycles:              4,
@@ -418,6 +679,51 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x7D,
 		Exec:                ADC,
 	},
+	0x7E: Instruction{
+		Bytes:               3,
+		Cycles:              7,
+		AddCycleOnPageCross: false,
+		AddressingMode:      AbsoluteX,
+		Assembly:            "ROR",
+		Opcode:              0x7E,
+		Exec:                ROR,
+	},
+	0x81: Instruction{
+		Bytes:               2,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      IndexedIndirect,
+		Assembly:            "STA",
+		Opcode:              0x81,
+		Exec:                STA,
+	},
+	0x84: Instruction{
+		Bytes:               2,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "STY",
+		Opcode:              0x84,
+		Exec:                STY,
+	},
+	0x85: Instruction{
+		Bytes:               2,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "STA",
+		Opcode:              0x85,
+		Exec:                STA,
+	},
+	0x86: Instruction{
+		Bytes:               2,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "STX",
+		Opcode:              0x86,
+		Exec:                STX,
+	},
 	0x88: Instruction{
 		Bytes:               1,
 		Cycles:              2,
@@ -427,6 +733,42 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x88,
 		Exec:                DEY,
 	},
+	0x8A: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "TXA",
+		Opcode:              0x8A,
+		Exec:                TXA,
+	},
+	0x8C: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "STY",
+		Opcode:              0x8C,
+		Exec:                STY,
+	},
+	0x8D: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "STA",
+		Opcode:              0x8D,
+		Exec:                STA,
+	},
+	0x8E: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "STX",
+		Opcode:              0x8E,
+		Exec:                STX,
+	},
 	0x90: Instruction{
 		Bytes:               2,
 		Cycles:              2,
@@ -435,6 +777,78 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "BCC",
 		Opcode:              0x90,
 		Exec:                BCC,
+	},
+	0x91: Instruction{
+		Bytes:               2,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      IndirectIndexed,
+		Assembly:            "STA",
+		Opcode:              0x91,
+		Exec:                STA,
+	},
+	0x94: Instruction{
+		Bytes:               2,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageX,
+		Assembly:            "STY",
+		Opcode:              0x94,
+		Exec:                STY,
+	},
+	0x95: Instruction{
+		Bytes:               2,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageX,
+		Assembly:            "STA",
+		Opcode:              0x95,
+		Exec:                STA,
+	},
+	0x96: Instruction{
+		Bytes:               2,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageY,
+		Assembly:            "STA",
+		Opcode:              0x96,
+		Exec:                STX,
+	},
+	0x98: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "TYA",
+		Opcode:              0x98,
+		Exec:                TYA,
+	},
+	0x99: Instruction{
+		Bytes:               3,
+		Cycles:              5,
+		AddCycleOnPageCross: false,
+		AddressingMode:      AbsoluteY,
+		Assembly:            "STA",
+		Opcode:              0x99,
+		Exec:                STA,
+	},
+	0x9A: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "TXS",
+		Opcode:              0x9A,
+		Exec:                TXS,
+	},
+	0x9D: Instruction{
+		Bytes:               3,
+		Cycles:              5,
+		AddCycleOnPageCross: false,
+		AddressingMode:      AbsoluteX,
+		Assembly:            "STA",
+		Opcode:              0x9D,
+		Exec:                STA,
 	},
 	0xA0: Instruction{
 		Bytes:               2,
@@ -490,6 +904,15 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0xA6,
 		Exec:                LDX,
 	},
+	0xA8: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "TAY",
+		Opcode:              0xA8,
+		Exec:                TAY,
+	},
 	0xA9: Instruction{
 		Bytes:               2,
 		Cycles:              2,
@@ -498,6 +921,15 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "LDA",
 		Opcode:              0xA9,
 		Exec:                LDA,
+	},
+	0xAA: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "TAX",
+		Opcode:              0xAA,
+		Exec:                TAX,
 	},
 	0xAC: Instruction{
 		Bytes:               3,
@@ -588,6 +1020,15 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "LDA",
 		Opcode:              0xB9,
 		Exec:                LDA,
+	},
+	0xBA: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "TSX",
+		Opcode:              0xBA,
+		Exec:                TSX,
 	},
 	0xBC: Instruction{
 		Bytes:               3,
@@ -787,6 +1228,15 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0xE0,
 		Exec:                CPX,
 	},
+	0xE1: Instruction{
+		Bytes:               2,
+		Cycles:              6,
+		AddCycleOnPageCross: false,
+		AddressingMode:      IndexedIndirect,
+		Assembly:            "SBC",
+		Opcode:              0xE1,
+		Exec:                SBC,
+	},
 	0xE4: Instruction{
 		Bytes:               2,
 		Cycles:              3,
@@ -795,6 +1245,15 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "CPX",
 		Opcode:              0xE4,
 		Exec:                CPX,
+	},
+	0xE5: Instruction{
+		Bytes:               2,
+		Cycles:              3,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPage,
+		Assembly:            "SBC",
+		Opcode:              0xE5,
+		Exec:                SBC,
 	},
 	0xE6: Instruction{
 		Bytes:               2,
@@ -814,6 +1273,24 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0xE8,
 		Exec:                INX,
 	},
+	0xE9: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Immediate,
+		Assembly:            "SBC",
+		Opcode:              0xE9,
+		Exec:                SBC,
+	},
+	0xEA: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0xEA,
+		Exec:                NOP,
+	},
 	0xEC: Instruction{
 		Bytes:               3,
 		Cycles:              4,
@@ -822,6 +1299,15 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "CPX",
 		Opcode:              0xEC,
 		Exec:                CPX,
+	},
+	0xED: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Absolute,
+		Assembly:            "SBC",
+		Opcode:              0xED,
+		Exec:                SBC,
 	},
 	0xEE: Instruction{
 		Bytes:               3,
@@ -840,6 +1326,51 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "BEQ",
 		Opcode:              0xF0,
 		Exec:                BEQ,
+	},
+	0xF1: Instruction{
+		Bytes:               2,
+		Cycles:              5,
+		AddCycleOnPageCross: true,
+		AddressingMode:      IndirectIndexed,
+		Assembly:            "SBC",
+		Opcode:              0xF1,
+		Exec:                SBC,
+	},
+	0xF5: Instruction{
+		Bytes:               2,
+		Cycles:              4,
+		AddCycleOnPageCross: false,
+		AddressingMode:      ZeroPageX,
+		Assembly:            "SBC",
+		Opcode:              0xF5,
+		Exec:                SBC,
+	},
+	0xF8: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "SED",
+		Opcode:              0xF8,
+		Exec:                SED,
+	},
+	0xF9: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteY,
+		Assembly:            "SBC",
+		Opcode:              0xF9,
+		Exec:                SBC,
+	},
+	0xFD: Instruction{
+		Bytes:               3,
+		Cycles:              4,
+		AddCycleOnPageCross: true,
+		AddressingMode:      AbsoluteX,
+		Assembly:            "SBC",
+		Opcode:              0xFD,
+		Exec:                SBC,
 	},
 	0xFE: Instruction{
 		Bytes:               3,
@@ -861,33 +1392,29 @@ var instructionMap = map[uint8]Instruction{
 	},
 }
 
+// This function is used interally by the ADC and SBC instructions
+var add = func(cpu *CPU, operand byte) {
+	accumulator := cpu.A
+	carry := cpu.flagToInt(cpu.CFlag)
+
+	cpu.A = accumulator + operand + carry
+
+	cpu.CFlag = cpu.A < accumulator
+
+	// Formula for setting the overflow flag taken from:
+	// http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
+	cpu.VFlag = ((accumulator ^ cpu.A) & (operand ^ cpu.A) & 0x80) != 0
+
+	cpu.setZeroAndNegativeFlags(cpu.A)
+}
+
 var AND = func(cpu *CPU, context *InstructionContext) {
 	cpu.A = (cpu.A & cpu.Memory[context.Address])
 	cpu.setZeroAndNegativeFlags(cpu.A)
 }
 
 var ADC = func(cpu *CPU, context *InstructionContext) {
-	accumulator := cpu.A
-	operand := cpu.Memory[context.Address]
-	carry := cpu.flagToInt(cpu.CFlag)
-
-	cpu.A = accumulator + operand + carry
-
-	if cpu.A < accumulator {
-		cpu.CFlag = true
-	} else {
-		cpu.CFlag = false
-	}
-
-	// Formula for setting the overflow flag taken from:
-	// http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
-	if ((accumulator ^ cpu.A) & (operand ^ cpu.A) & 0x80) != 0 {
-		cpu.VFlag = true
-	} else {
-		cpu.VFlag = false
-	}
-
-	cpu.setZeroAndNegativeFlags(cpu.A)
+	add(cpu, cpu.Memory[context.Address])
 }
 
 var ASL = func(cpu *CPU, context *InstructionContext) {
@@ -1073,6 +1600,138 @@ var LSR = func(cpu *CPU, context *InstructionContext) {
 	cpu.CFlag = cpu.intToFlag(*operand & 0x80)
 	*operand = *operand >> 1
 	cpu.setZeroAndNegativeFlags(*operand)
+}
+
+var NOP = func(cpu *CPU, context *InstructionContext) {}
+
+var ORA = func(cpu *CPU, context *InstructionContext) {
+	cpu.A = cpu.A | cpu.Memory[context.Address]
+	cpu.setZeroAndNegativeFlags(cpu.A)
+}
+
+var PHA = func(cpu *CPU, context *InstructionContext) {
+	cpu.stackPush(cpu.A)
+}
+
+var PHP = func(cpu *CPU, context *InstructionContext) {
+	// Bits 5 and 4 are always set according to
+	// https://wiki.nesdev.com/w/index.php/CPU_status_flag_behavior
+	// though the flag status isn't changed
+	cpu.stackPush(cpu.flagsToByte() | 0x30)
+}
+
+var PLA = func(cpu *CPU, context *InstructionContext) {
+	cpu.A = cpu.stackPop()
+}
+
+var PLP = func(cpu *CPU, context *InstructionContext) {
+	cpu.byteToFlags(cpu.stackPop())
+}
+
+var ROL = func(cpu *CPU, context *InstructionContext) {
+	var operand *byte
+	var flag bool
+	if context.AddressingMode == Accumulator {
+		operand = &cpu.A
+	} else {
+		operand = &cpu.Memory[context.Address]
+	}
+
+	flag = cpu.intToFlag(*operand & 0x80)
+	*operand = *operand << 1
+	*operand = *operand | cpu.flagToInt(cpu.CFlag)
+	cpu.CFlag = flag
+	cpu.setNegativeFlag(*operand)
+}
+
+var ROR = func(cpu *CPU, context *InstructionContext) {
+	var operand *byte
+	var flag bool
+
+	if context.AddressingMode == Accumulator {
+		operand = &cpu.A
+	} else {
+		operand = &cpu.Memory[context.Address]
+	}
+
+	flag = *operand > 0
+	*operand = *operand >> 1
+	if cpu.CFlag {
+		*operand = *operand | 0x80
+	}
+	cpu.CFlag = flag
+	cpu.setNegativeFlag(*operand)
+}
+
+var RTI = func(cpu *CPU, context *InstructionContext) {
+	cpu.byteToFlags(cpu.stackPop())
+}
+
+var RTS = func(cpu *CPU, context *InstructionContext) {
+	cpu.PC = cpu.stackPop16() + 1
+}
+
+var SBC = func(cpu *CPU, context *InstructionContext) {
+	// Subtraction is the same as addition of the one's
+	// complement. Here we flip the bits of the operand
+	// (i.e. take the one's complement) and then run the
+	// same logic as the ADC instruction
+	operand := cpu.Memory[context.Address]
+	add(cpu, ^operand)
+}
+
+var SEC = func(cpu *CPU, context *InstructionContext) {
+	cpu.CFlag = true
+}
+
+var SED = func(cpu *CPU, context *InstructionContext) {
+	cpu.DFlag = true
+}
+
+var SEI = func(cpu *CPU, context *InstructionContext) {
+	cpu.IFlag = true
+}
+
+var STA = func(cpu *CPU, context *InstructionContext) {
+	cpu.Memory[context.Address] = cpu.A
+}
+
+var STX = func(cpu *CPU, context *InstructionContext) {
+	cpu.Memory[context.Address] = cpu.X
+}
+
+var STY = func(cpu *CPU, context *InstructionContext) {
+	cpu.Memory[context.Address] = cpu.Y
+}
+
+var TAX = func(cpu *CPU, context *InstructionContext) {
+	cpu.X = cpu.A
+	cpu.setZeroAndNegativeFlags(cpu.X)
+}
+
+var TAY = func(cpu *CPU, context *InstructionContext) {
+	cpu.Y = cpu.A
+	cpu.setZeroAndNegativeFlags(cpu.Y)
+}
+
+var TSX = func(cpu *CPU, context *InstructionContext) {
+	cpu.X = cpu.SP
+	cpu.setZeroAndNegativeFlags(cpu.X)
+}
+
+var TXA = func(cpu *CPU, context *InstructionContext) {
+	cpu.A = cpu.X
+	cpu.setZeroAndNegativeFlags(cpu.A)
+}
+
+var TXS = func(cpu *CPU, context *InstructionContext) {
+	cpu.SP = cpu.X
+	cpu.setZeroAndNegativeFlags(cpu.SP)
+}
+
+var TYA = func(cpu *CPU, context *InstructionContext) {
+	cpu.A = cpu.Y
+	cpu.setZeroAndNegativeFlags(cpu.A)
 }
 
 func fakeFunctionNeverCalled() {

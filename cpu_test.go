@@ -74,7 +74,6 @@ func (h *CpuTestHarness) SetupAbsoluteYPageCross() {
 }
 
 func (h *CpuTestHarness) SetupIndexedIndirect() {
-	h.Cpu.A = 0x05
 	h.Cpu.X = 0x01
 	h.Cpu.Memory[0] = h.Opcode
 	h.Cpu.Memory[1] = 0xFE
@@ -3523,5 +3522,1489 @@ func TestLSRAccumulatorWithCarry(t *testing.T) {
 
 	if cpu.CFlag != true {
 		t.Error("Did not correctly set carry flag")
+	}
+}
+
+func TestLSRZeroPage(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x46
+	harness.SetupZeroPage()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x17] != 0x03 {
+		t.Error("did not correctly set Memory, got: ", harness.Cpu.Memory[0x17])
+	}
+
+	if harness.Cpu.PC != 0x02 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestLSRZeroPageX(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x56
+	harness.SetupZeroPageX()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x8F] != 0x03 {
+		t.Error("did not correctly set Memory, got: ", harness.Cpu.Memory[0x8F])
+	}
+
+	if harness.Cpu.PC != 0x02 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestLSRAbsolute(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x4E
+	harness.SetupAbsolute()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x8080] != 0x03 {
+		t.Error("did not correctly set Memory, got: ", harness.Cpu.Memory[0x8080])
+	}
+
+	if harness.Cpu.PC != 0x03 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestLSRAbsoluteX(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x5E
+	harness.SetupAbsoluteX()
+	harness.Run()
+
+	if harness.Cpu.Memory[0xFF81] != 0x03 {
+		t.Error("did not correctly set Memory, got: ", harness.Cpu.Memory[0xFF81])
+	}
+
+	if harness.Cpu.PC != 0x03 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 7 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestNOP(t *testing.T) {
+	cpu := NewCPU()
+	cpu.Memory[0] = 0xEA
+	cpu.Exec()
+
+	if cpu.PC != 0x01 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestORAImmediate(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = true
+	cpu.NFlag = true
+	cpu.A = 0x03
+	cpu.Memory[0] = 0x09
+	cpu.Memory[1] = 0x01
+	cpu.Exec()
+
+	if cpu.A != 0x03 {
+		t.Error("failed to give correct Accumulator value, got: ", cpu.A)
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != false {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC")
+	}
+}
+
+func TestORAZeroPage(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x05
+	harness.SetupZeroPage()
+	harness.Run()
+
+	if harness.Cpu.A != 0x07 {
+		t.Error("did not correctly set Accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 0x02 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 3 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestORAZeroPageX(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x15
+	harness.SetupZeroPageX()
+	harness.Run()
+
+	if harness.Cpu.A != 0x07 {
+		t.Error("did not correctly set Accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 0x02 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestORAAbsolute(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x0D
+	harness.SetupAbsolute()
+	harness.Run()
+
+	if harness.Cpu.A != 0x07 {
+		t.Error("did not correctly set Accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 0x03 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestORAAbsoluteX(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x1D
+	harness.SetupAbsoluteX()
+	harness.Run()
+
+	if harness.Cpu.A != 0x07 {
+		t.Error("did not correctly set Accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 0x03 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestORAAbsoluteXWithPageCross(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x1D
+	harness.SetupAbsoluteXPageCross()
+	harness.Run()
+
+	if harness.Cpu.A != 0x07 {
+		t.Error("did not correctly set Accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 0x03 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestORAAbsoluteY(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x19
+	harness.SetupAbsoluteY()
+	harness.Run()
+
+	if harness.Cpu.A != 0x07 {
+		t.Error("did not correctly set Accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 0x03 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestORAAbsoluteYWithPageCross(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x19
+	harness.SetupAbsoluteYPageCross()
+	harness.Run()
+
+	if harness.Cpu.A != 0x07 {
+		t.Error("did not correctly set Accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 0x03 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestORAIndexedIndirect(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x01
+	harness.SetupIndexedIndirect()
+	harness.Run()
+
+	if harness.Cpu.A != 0x07 {
+		t.Error("did not correctly set Accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 0x02 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestORAIndirectIndexed(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x11
+	harness.SetupIndirectIndexed()
+	harness.Run()
+
+	if harness.Cpu.A != 0x07 {
+		t.Error("did not correctly set Accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 0x02 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestORAIndirectIndexedWithPageCross(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x11
+	harness.SetupIndirectIndexedPageCross()
+	harness.Run()
+
+	if harness.Cpu.A != 0x07 {
+		t.Error("did not correctly set Accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 0x02 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestPHA(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0xD3
+	cpu.Memory[0] = 0x48
+	cpu.Exec()
+
+	stack := cpu.stackPop()
+
+	if stack != 0xD3 {
+		t.Error("did not correctly push A onto stack, got: ", stack)
+	}
+
+	if cpu.PC != 0x01 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 3 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestPHP(t *testing.T) {
+	cpu := NewCPU()
+	cpu.NFlag = true
+	cpu.VFlag = true
+	cpu.UFlag = false
+	cpu.BFlag = false
+	cpu.DFlag = true
+	cpu.IFlag = true
+	cpu.ZFlag = true
+	cpu.CFlag = true
+	cpu.Memory[0] = 0x08
+	cpu.Exec()
+
+	stack := cpu.stackPop()
+
+	if stack&0x30 != 0x30 {
+		t.Error("did not set bits 5 and 4")
+	}
+
+	if stack != 0xFF {
+		t.Error("did not correctly push flags onto stack, got: ", stack)
+	}
+
+	if cpu.PC != 0x01 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 3 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestPLA(t *testing.T) {
+	cpu := NewCPU()
+	cpu.NFlag = true
+	cpu.ZFlag = true
+	cpu.stackPush(0x07)
+	cpu.Memory[0] = 0x68
+	cpu.Exec()
+
+	if cpu.A != 0x07 {
+		t.Error("did not correctly push flags onto stack, got: ", cpu.A)
+	}
+
+	if cpu.PC != 0x01 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestPLP(t *testing.T) {
+	cpu := NewCPU()
+	cpu.stackPush(0xFF)
+	cpu.Memory[0] = 0x28
+	cpu.Exec()
+
+	if cpu.PC != 0x01 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.ZFlag != true {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+	if cpu.VFlag != true {
+		t.Error("set overflow flag incorrectly")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.ZFlag != true {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.ZFlag != true {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+}
+
+func TestROL(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x2A
+	harness.SetupAccumulator()
+	harness.Cpu.CFlag = true
+	harness.Cpu.NFlag = true
+	harness.Run()
+
+	if harness.Cpu.A != 0x11 {
+		t.Error("did not correctly set Accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.CFlag != false {
+		t.Error("did not correctly set CFlag, got: ", harness.Cpu.CFlag)
+	}
+
+	if harness.Cpu.NFlag != false {
+		t.Error("did not correctly set NFlag, got: ", harness.Cpu.NFlag)
+	}
+
+	if harness.Cpu.PC != 0x01 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestROLZeroPage(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x26
+	harness.SetupZeroPage()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x17] != 0x0E {
+		t.Error("did not correctly set memory value, got: ", harness.Cpu.Memory[0x17])
+	}
+
+	if harness.Cpu.PC != 0x02 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestROLZeroPageX(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x36
+	harness.SetupZeroPageX()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x8F] != 0x0E {
+		t.Error("did not correctly set memory value, got: ", harness.Cpu.Memory[0x8F])
+	}
+
+	if harness.Cpu.PC != 0x02 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestROLAbsolute(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x2E
+	harness.SetupAbsolute()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x8080] != 0x0E {
+		t.Error("did not correctly set memory value, got: ", harness.Cpu.Memory[0x8080])
+	}
+
+	if harness.Cpu.PC != 0x03 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestROLAbsoluteX(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x3E
+	harness.SetupAbsoluteX()
+	harness.Run()
+
+	if harness.Cpu.Memory[0xFF81] != 0x0E {
+		t.Error("did not correctly set memory value, got: ", harness.Cpu.Memory[0xFF81])
+	}
+
+	if harness.Cpu.PC != 0x03 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 7 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestROR(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x6A
+	harness.SetupAccumulator()
+	harness.Cpu.CFlag = false
+	harness.Cpu.NFlag = true
+	harness.Run()
+
+	if harness.Cpu.A != 0x04 {
+		t.Error("did not correctly set Accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.CFlag != true {
+		t.Error("did not correctly set CFlag, got: ", harness.Cpu.CFlag)
+	}
+
+	if harness.Cpu.NFlag != false {
+		t.Error("did not correctly set NFlag, got: ", harness.Cpu.NFlag)
+	}
+
+	if harness.Cpu.PC != 0x01 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestRORZeroPage(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x66
+	harness.SetupZeroPage()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x17] != 0x03 {
+		t.Error("did not correctly set memory value, got: ", harness.Cpu.Memory[0x17])
+	}
+
+	if harness.Cpu.PC != 0x02 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestRORZeroPageX(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x76
+	harness.SetupZeroPageX()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x8F] != 0x03 {
+		t.Error("did not correctly set memory value, got: ", harness.Cpu.Memory[0x8F])
+	}
+
+	if harness.Cpu.PC != 0x02 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestRORAbsolute(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x6E
+	harness.SetupAbsolute()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x8080] != 0x03 {
+		t.Error("did not correctly set memory value, got: ", harness.Cpu.Memory[0x8080])
+	}
+
+	if harness.Cpu.PC != 0x03 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestRORAbsoluteX(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Opcode = 0x7E
+	harness.SetupAbsoluteX()
+	harness.Run()
+
+	if harness.Cpu.Memory[0xFF81] != 0x03 {
+		t.Error("did not correctly set memory value, got: ", harness.Cpu.Memory[0xFF81])
+	}
+
+	if harness.Cpu.PC != 0x03 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 7 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestRTI(t *testing.T) {
+	cpu := NewCPU()
+	cpu.stackPush(0xFF)
+	cpu.Memory[0] = 0x40
+	cpu.Exec()
+
+	if cpu.PC != 0x01 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles flag")
+	}
+
+	if cpu.ZFlag != true {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+	if cpu.VFlag != true {
+		t.Error("set overflow flag incorrectly")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.ZFlag != true {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+
+	if cpu.ZFlag != true {
+		t.Error("set zero flag incorrectly")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("set negative flag incorrectly")
+	}
+}
+
+func TestRTS(t *testing.T) {
+	cpu := NewCPU()
+	cpu.stackPush(0xFA)
+	cpu.Memory[0] = 0x60
+	cpu.Exec()
+
+	if cpu.PC != 0xFB {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles flag")
+	}
+}
+
+func TestSBC(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x0A
+	cpu.CFlag = true
+	cpu.Memory[0] = 0xE9
+	cpu.Memory[1] = 0x09
+	cpu.Exec()
+
+	if cpu.A != 1 {
+		t.Error("did not correctly set accumulator, got: ", cpu.A)
+	}
+
+	if cpu.CFlag != true {
+		t.Error("did not correctly set carry, got: ", cpu.CFlag)
+	}
+
+	if cpu.VFlag != false {
+		t.Error("did not correctly set overflow, got: ", cpu.VFlag)
+	}
+
+	if cpu.PC != 2 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSBCWithOverflow(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x50
+	cpu.CFlag = true
+	cpu.Memory[0] = 0xE9
+	cpu.Memory[1] = 0xB0
+	cpu.Exec()
+
+	if cpu.A != 160 {
+		t.Error("did not correctly set accumulator, got: ", cpu.A)
+	}
+
+	if cpu.CFlag != false {
+		t.Error("did not correctly set carry, got: ", cpu.CFlag)
+	}
+
+	if cpu.VFlag != true {
+		t.Error("did not correctly set overflow, got: ", cpu.VFlag)
+	}
+}
+
+func TestSBCWithOverflowWithoutBorrow(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0xD0
+	cpu.CFlag = true
+	cpu.Memory[0] = 0xE9
+	cpu.Memory[1] = 0x70
+	cpu.Exec()
+
+	if cpu.A != 96 {
+		t.Error("did not correctly set accumulator, got: ", cpu.A)
+	}
+
+	if cpu.CFlag != true {
+		t.Error("did not correctly set carry, got: ", cpu.CFlag)
+	}
+
+	if cpu.VFlag != true {
+		t.Error("did not correctly set overflow, got: ", cpu.VFlag)
+	}
+}
+
+func TestSBCWithBorrow(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x02
+	cpu.Memory[0] = 0xE9
+	cpu.Memory[1] = 0x01
+	cpu.Exec()
+
+	if cpu.A != 0 {
+		t.Error("did not correctly set accumulator, got: ", cpu.A)
+	}
+
+	if cpu.CFlag != true {
+		t.Error("did not correctly set carry, got: ", cpu.CFlag)
+	}
+
+	if cpu.VFlag != false {
+		t.Error("did not correctly set overflow, got: ", cpu.VFlag)
+	}
+}
+
+func TestSBCZeroPage(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.CFlag = true
+	harness.Cpu.A = 0x08
+	harness.Opcode = 0xE5
+	harness.SetupZeroPage()
+	harness.Run()
+
+	if harness.Cpu.A != 1 {
+		t.Error("did not correctly set accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 2 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 3 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSBCZeroPageX(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.CFlag = true
+	harness.Cpu.A = 0x08
+	harness.Opcode = 0xF5
+	harness.SetupZeroPageX()
+	harness.Run()
+
+	if harness.Cpu.A != 1 {
+		t.Error("did not correctly set accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 2 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSBCAbsolute(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.CFlag = true
+	harness.Cpu.A = 0x08
+	harness.Opcode = 0xED
+	harness.SetupAbsolute()
+	harness.Run()
+
+	if harness.Cpu.A != 1 {
+		t.Error("did not correctly set accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 3 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSBCAbsoluteX(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.CFlag = true
+	harness.Cpu.A = 0x08
+	harness.Opcode = 0xFD
+	harness.SetupAbsoluteX()
+	harness.Run()
+
+	if harness.Cpu.A != 1 {
+		t.Error("did not correctly set accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 3 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSBCAbsoluteXPageCross(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.CFlag = true
+	harness.Cpu.A = 0x08
+	harness.Opcode = 0xFD
+	harness.SetupAbsoluteXPageCross()
+	harness.Run()
+
+	if harness.Cpu.A != 1 {
+		t.Error("did not correctly set accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 3 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSBCAbsoluteY(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.CFlag = true
+	harness.Cpu.A = 0x08
+	harness.Opcode = 0xF9
+	harness.SetupAbsoluteY()
+	harness.Run()
+
+	if harness.Cpu.A != 1 {
+		t.Error("did not correctly set accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 3 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSBCAbsoluteYPageCross(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.CFlag = true
+	harness.Cpu.A = 0x08
+	harness.Opcode = 0xF9
+	harness.SetupAbsoluteYPageCross()
+	harness.Run()
+
+	if harness.Cpu.A != 1 {
+		t.Error("did not correctly set accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 3 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSBCIndexedIndirect(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.CFlag = true
+	harness.Cpu.A = 0x08
+	harness.Opcode = 0xE1
+	harness.SetupIndexedIndirect()
+	harness.Run()
+
+	if harness.Cpu.A != 1 {
+		t.Error("did not correctly set accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 2 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSBCIndirectIndexed(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.CFlag = true
+	harness.Cpu.A = 0x08
+	harness.Opcode = 0xF1
+	harness.SetupIndirectIndexed()
+	harness.Run()
+
+	if harness.Cpu.A != 1 {
+		t.Error("did not correctly set accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 2 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSBCIndirectIndexedPageCross(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.CFlag = true
+	harness.Cpu.A = 0x08
+	harness.Opcode = 0xF1
+	harness.SetupIndirectIndexedPageCross()
+	harness.Run()
+
+	if harness.Cpu.A != 1 {
+		t.Error("did not correctly set accumulator, got: ", harness.Cpu.A)
+	}
+
+	if harness.Cpu.PC != 2 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSEC(t *testing.T) {
+	cpu := NewCPU()
+	cpu.Memory[0] = 0x38
+	cpu.Exec()
+
+	if cpu.CFlag != true {
+		t.Error("did not set carry")
+	}
+
+	if cpu.PC != 1 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSED(t *testing.T) {
+	cpu := NewCPU()
+	cpu.Memory[0] = 0xF8
+	cpu.Exec()
+
+	if cpu.DFlag != true {
+		t.Error("did not set decimal flag")
+	}
+
+	if cpu.PC != 1 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSEI(t *testing.T) {
+	cpu := NewCPU()
+	cpu.Memory[0] = 0x78
+	cpu.Exec()
+
+	if cpu.IFlag != true {
+		t.Error("did not set interrupt disable")
+	}
+
+	if cpu.PC != 1 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSTAZeroPage(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.A = 0xDD
+	harness.Opcode = 0x85
+	harness.SetupZeroPage()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x17] != 0xDD {
+		t.Error("did not correctly set memory, got: ", harness.Cpu.Memory[0x17])
+	}
+
+	if harness.Cpu.PC != 2 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 3 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSTAZeroPageX(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.A = 0xDD
+	harness.Opcode = 0x95
+	harness.SetupZeroPageX()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x8F] != 0xDD {
+		t.Error("did not correctly set memory, got: ", harness.Cpu.Memory[0x8F])
+	}
+
+	if harness.Cpu.PC != 2 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSTAAbsolute(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.A = 0xDD
+	harness.Opcode = 0x8D
+	harness.SetupAbsolute()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x8080] != 0xDD {
+		t.Error("did not correctly set memory, got: ", harness.Cpu.Memory[0x8080])
+	}
+
+	if harness.Cpu.PC != 3 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSTAAbsoluteX(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.A = 0xDD
+	harness.Opcode = 0x9D
+	harness.SetupAbsoluteX()
+	harness.Run()
+
+	if harness.Cpu.Memory[0xFF81] != 0xDD {
+		t.Error("did not correctly set memory, got: ", harness.Cpu.Memory[0xFF81])
+	}
+
+	if harness.Cpu.PC != 3 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSTAAbsoluteY(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.A = 0xDD
+	harness.Opcode = 0x99
+	harness.SetupAbsoluteY()
+	harness.Run()
+
+	if harness.Cpu.Memory[0xFF81] != 0xDD {
+		t.Error("did not correctly set memory, got: ", harness.Cpu.Memory[0xFF81])
+	}
+
+	if harness.Cpu.PC != 3 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 5 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSTAIndexedIndirect(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.A = 0xDD
+	harness.Opcode = 0x81
+	harness.SetupIndexedIndirect()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x09] != 0xDD {
+		t.Error("did not correctly set memory, got: ", harness.Cpu.Memory[0x09])
+	}
+
+	if harness.Cpu.PC != 2 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSTAIndirectIndexed(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.A = 0xDD
+	harness.Opcode = 0x91
+	harness.SetupIndirectIndexed()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x06] != 0xDD {
+		t.Error("did not correctly set memory, got: ", harness.Cpu.Memory[0x09])
+	}
+
+	if harness.Cpu.PC != 2 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 6 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSTXZeroPage(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.X = 0xDD
+	harness.Opcode = 0x86
+	harness.SetupZeroPage()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x17] != 0xDD {
+		t.Error("did not correctly set memory, got: ", harness.Cpu.Memory[0x17])
+	}
+
+	if harness.Cpu.PC != 2 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 3 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSTXZeroPageY(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.X = 0xDD
+	harness.Opcode = 0x96
+	harness.SetupZeroPageY()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x8F] != 0xDD {
+		t.Error("did not correctly set memory, got: ", harness.Cpu.Memory[0x8F])
+	}
+
+	if harness.Cpu.PC != 2 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSTXAbsolute(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.X = 0xDD
+	harness.Opcode = 0x8E
+	harness.SetupAbsolute()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x8080] != 0xDD {
+		t.Error("did not correctly set memory, got: ", harness.Cpu.Memory[0x8080])
+	}
+
+	if harness.Cpu.PC != 3 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSTYZeroPage(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.Y = 0xDD
+	harness.Opcode = 0x84
+	harness.SetupZeroPage()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x17] != 0xDD {
+		t.Error("did not correctly set memory, got: ", harness.Cpu.Memory[0x17])
+	}
+
+	if harness.Cpu.PC != 2 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 3 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSTYZeroPageX(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.Y = 0xDD
+	harness.Opcode = 0x94
+	harness.SetupZeroPageX()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x8F] != 0xDD {
+		t.Error("did not correctly set memory, got: ", harness.Cpu.Memory[0x8F])
+	}
+
+	if harness.Cpu.PC != 2 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestSTYAbsolute(t *testing.T) {
+	harness := NewCpuTestHarness()
+	harness.Cpu.Y = 0xDD
+	harness.Opcode = 0x8C
+	harness.SetupAbsolute()
+	harness.Run()
+
+	if harness.Cpu.Memory[0x8080] != 0xDD {
+		t.Error("did not correctly set memory, got: ", harness.Cpu.Memory[0x8080])
+	}
+
+	if harness.Cpu.PC != 3 {
+		t.Error("did not correctly update PC, got", harness.Cpu.PC)
+	}
+
+	if harness.Cpu.Cycles != 4 {
+		t.Error("did not correctly set cycles")
+	}
+}
+
+func TestTAX(t *testing.T) {
+	cpu := NewCPU()
+	cpu.A = 0x87
+	cpu.ZFlag = true
+	cpu.Memory[0] = 0xAA
+	cpu.Exec()
+
+	if cpu.X != 0x87 {
+		t.Error("did not correctly set X register, got: ", cpu.X)
+	}
+
+	if cpu.PC != 1 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("did not correctly set NFlag")
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("did not correctly set ZFlag")
+	}
+}
+
+func TestTAY(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = true
+	cpu.A = 0x87
+	cpu.Memory[0] = 0xA8
+	cpu.Exec()
+
+	if cpu.Y != 0x87 {
+		t.Error("did not correctly set Y register, got: ", cpu.Y)
+	}
+
+	if cpu.PC != 1 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("did not correctly set NFlag")
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("did not correctly set ZFlag")
+	}
+}
+
+func TestTSX(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = true
+	cpu.SP = 0x87
+	cpu.Memory[0] = 0xBA
+	cpu.Exec()
+
+	if cpu.X != 0x87 {
+		t.Error("did not correctly set X register, got: ", cpu.X)
+	}
+
+	if cpu.PC != 1 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("did not correctly set NFlag")
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("did not correctly set ZFlag")
+	}
+}
+
+func TestTXA(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = true
+	cpu.X = 0x87
+	cpu.Memory[0] = 0x8A
+	cpu.Exec()
+
+	if cpu.A != 0x87 {
+		t.Error("did not correctly set Y register, got: ", cpu.A)
+	}
+
+	if cpu.PC != 1 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("did not correctly set NFlag")
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("did not correctly set ZFlag")
+	}
+}
+
+func TestTXS(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = true
+	cpu.X = 0x87
+	cpu.Memory[0] = 0x9A
+	cpu.Exec()
+
+	if cpu.SP != 0x87 {
+		t.Error("did not correctly set SP register, got: ", cpu.SP)
+	}
+
+	if cpu.PC != 1 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("did not correctly set NFlag")
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("did not correctly set ZFlag")
+	}
+}
+
+func TestTYA(t *testing.T) {
+	cpu := NewCPU()
+	cpu.ZFlag = true
+	cpu.Y = 0x87
+	cpu.Memory[0] = 0x98
+	cpu.Exec()
+
+	if cpu.A != 0x87 {
+		t.Error("did not correctly set Y register, got: ", cpu.A)
+	}
+
+	if cpu.PC != 1 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles")
+	}
+
+	if cpu.NFlag != true {
+		t.Error("did not correctly set NFlag")
+	}
+
+	if cpu.ZFlag != false {
+		t.Error("did not correctly set ZFlag")
 	}
 }
