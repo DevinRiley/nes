@@ -20,7 +20,7 @@ type CPU struct {
 	ZFlag  bool // zero flag
 	CFlag  bool // carry flag
 	Cycles uint
-	Memory [100000]byte
+	Memory [0x10000]byte
 	Debug  bool
 }
 
@@ -28,14 +28,29 @@ func (cpu *CPU) Print() {
 	fmt.Printf("PC: %d SP: %d A: %d X: %d Y: %d, Cycles: %d\n", cpu.PC, cpu.SP, cpu.A, cpu.X, cpu.Y, cpu.Cycles)
 }
 
+func (cpu *CPU) PrintTest(instruction Instruction) {
+	w0 := fmt.Sprintf("%02X", cpu.Memory[cpu.PC+0])
+	w1 := fmt.Sprintf("%02X", cpu.Memory[cpu.PC+1])
+	w2 := fmt.Sprintf("%02X", cpu.Memory[cpu.PC+2])
+	if instruction.Bytes < 2 {
+		w1 = "  "
+	}
+	if instruction.Bytes < 3 {
+		w2 = "  "
+	}
+	fmt.Printf(
+		"%4X  %s %s %s  %s %28s"+
+			"A:%02X X:%02X Y:%02X P:%02X SP:%02X PPU:%3d\n",
+		cpu.PC, w0, w1, w2, instruction.Assembly, "",
+		cpu.A, cpu.X, cpu.Y, cpu.flagsToByte(), cpu.SP, (cpu.Cycles*3)%341)
+}
+
 func (cpu *CPU) Exec() {
 	opcode := cpu.Memory[cpu.PC]
 	context := context(cpu, opcode)
 
 	if cpu.Debug {
-		fmt.Println("Beginning execution...")
-		//fmt.Printf("Opcode: %#x, Addressing Mode: %d, Address: %d\n", opcode, context.Mode, context.Address)
-		cpu.Print()
+		cpu.PrintTest(instructionMap[opcode])
 	}
 
 	instruction := instructionMap[opcode]
@@ -44,12 +59,6 @@ func (cpu *CPU) Exec() {
 	cpu.Cycles += instruction.Cycles
 	if context.PageCrossed && instruction.AddCycleOnPageCross {
 		cpu.Cycles += 1
-	}
-
-	if cpu.Debug {
-		fmt.Println("Finished execution")
-		cpu.Print()
-		fmt.Println()
 	}
 }
 
@@ -188,7 +197,7 @@ func context(cpu *CPU, opcode byte) *InstructionContext {
 func NewCPU() *CPU {
 	return &CPU{
 		PC:     0x00,
-		SP:     0xFF,
+		SP:     0xFD,
 		A:      0x00,
 		X:      0x00,
 		Y:      0x00,

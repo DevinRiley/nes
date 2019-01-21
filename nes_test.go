@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -233,7 +234,7 @@ func TestParseRom(t *testing.T) {
 		0x00, // Zero-filled
 	}
 
-	rom, err := parseRom(romData)
+	rom, err := parseRom(bytes.NewBuffer(romData))
 	if err != nil {
 		t.Error("Failed to parse ROM!")
 	}

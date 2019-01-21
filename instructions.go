@@ -1192,6 +1192,15 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0xD6,
 		Exec:                DEC,
 	},
+	0xD8: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "CLD",
+		Opcode:              0xD8,
+		Exec:                CLD,
+	},
 	0xD9: Instruction{
 		Bytes:               3,
 		Cycles:              4,
@@ -1489,13 +1498,15 @@ var BRK = func(cpu *CPU, context *InstructionContext) {
 	cpu.stackPush(byte(cpu.PC >> 8)) // high byte first
 	cpu.stackPush(byte(cpu.PC))      // then the low byte
 	// push the status flags onto the stack
-	cpu.stackPush(cpu.flagsToByte())
+	// Bits 5 and 4 are always set
+	// See: https://wiki.nesdev.com/w/index.php/Status_flags#The_B_flag
+	cpu.stackPush(cpu.flagsToByte() | 0x30)
+	// Set disable interupt flag
+	cpu.IFlag = true
 	// load the interrupt address from $FFFE and $FFFF
 	lo := uint16(cpu.Memory[0xFFFE])
 	hi := uint16(cpu.Memory[0xFFFF])
 	cpu.PC = (hi << 8) | lo
-	// Set the break flag
-	cpu.BFlag = true // When does this get unset?
 }
 
 var BVC = func(cpu *CPU, context *InstructionContext) {
@@ -1512,6 +1523,10 @@ var BVS = func(cpu *CPU, context *InstructionContext) {
 
 var CLC = func(cpu *CPU, context *InstructionContext) {
 	cpu.CFlag = false
+}
+
+var CLD = func(cpu *CPU, context *InstructionContext) {
+	cpu.DFlag = false
 }
 
 var CLI = func(cpu *CPU, context *InstructionContext) {
@@ -1615,17 +1630,18 @@ var PHA = func(cpu *CPU, context *InstructionContext) {
 
 var PHP = func(cpu *CPU, context *InstructionContext) {
 	// Bits 5 and 4 are always set according to
-	// https://wiki.nesdev.com/w/index.php/CPU_status_flag_behavior
+	// https://wiki.nesdev.com/w/index.php/Status_flags
 	// though the flag status isn't changed
 	cpu.stackPush(cpu.flagsToByte() | 0x30)
 }
 
 var PLA = func(cpu *CPU, context *InstructionContext) {
 	cpu.A = cpu.stackPop()
+	cpu.setZeroAndNegativeFlags(cpu.A)
 }
 
 var PLP = func(cpu *CPU, context *InstructionContext) {
-	cpu.byteToFlags(cpu.stackPop())
+	cpu.byteToFlags(cpu.stackPop()&0xEF | 0x20)
 }
 
 var ROL = func(cpu *CPU, context *InstructionContext) {

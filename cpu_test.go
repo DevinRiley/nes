@@ -5008,3 +5008,22 @@ func TestTYA(t *testing.T) {
 		t.Error("did not correctly set ZFlag")
 	}
 }
+
+func TestCLD(t *testing.T) {
+	cpu := NewCPU()
+	cpu.DFlag = true
+	cpu.Memory[0] = 0xD8
+	cpu.Exec()
+
+	if cpu.PC != 1 {
+		t.Error("did not correctly update PC, got", cpu.PC)
+	}
+
+	if cpu.Cycles != 2 {
+		t.Error("did not correctly set cycles")
+	}
+
+	if cpu.DFlag != false {
+		t.Error("did not clear DFlag")
+	}
+}

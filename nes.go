@@ -3,7 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"os"
 )
 
 type Mirroring int
@@ -31,6 +32,7 @@ type ROM struct {
 	TVSystem        TVSystem
 	PRGSize         uint
 	CHRSize         uint
+	PRGData         []byte
 }
 
 // ## Flags 6 #
@@ -131,25 +133,50 @@ func parseMapper(flags []byte) uint8 {
 	return (upper << 4) | lower
 }
 
-func parseRom(data []byte) (*ROM, error) {
+func parseRom(file io.Reader) (*ROM, error) {
 	var rom ROM
 
-	err := validateHeader(data)
+	header := make([]byte, 16)
+	if _, err := io.ReadFull(file, header); err != nil {
+		fmt.Println(err)
+		return &rom, err
+	}
+
+	err := validateHeader(header)
 	if err != nil {
 		fmt.Println(err)
 		return &rom, err
 	}
 
-	rom.PRGSize = parsePrgRomSize(data[4])
-	rom.CHRSize = parseChrRomSize(data[5])
-	rom.Mirroring = parseFlags6Mirroring(data[6])
-	rom.CartridgeMemory = parseFlags6CartridgeMemory(data[6])
-	rom.Trainer = parseFlags6Trainer(data[6])
-	rom.FourScreen = parseFlags6FourScreen(data[6])
-	rom.Mapper = parseMapper(data[6:8])
-	rom.VSUnisystem = parseFlags7VSUnisystem(data[7])
-	rom.NES2Format = parseFlags7NES2RomFormat(data[7])
-	rom.TVSystem = parseFlags9TVSystem(data[9])
+	rom.PRGSize = parsePrgRomSize(header[4])
+	rom.CHRSize = parseChrRomSize(header[5])
+	rom.Mirroring = parseFlags6Mirroring(header[6])
+	rom.CartridgeMemory = parseFlags6CartridgeMemory(header[6])
+	rom.Trainer = parseFlags6Trainer(header[6])
+	rom.FourScreen = parseFlags6FourScreen(header[6])
+	rom.Mapper = parseMapper(header[6:8])
+	rom.VSUnisystem = parseFlags7VSUnisystem(header[7])
+	rom.NES2Format = parseFlags7NES2RomFormat(header[7])
+	rom.TVSystem = parseFlags9TVSystem(header[9])
+
+	// read in trainer if it exists -- currently unused
+	if rom.Trainer {
+		trainer := make([]byte, 512)
+		_, err := io.ReadFull(file, trainer)
+
+		if err != nil {
+			fmt.Println(err)
+			return &rom, err
+		}
+	}
+
+	// read in PRG Data
+	rom.PRGData = make([]byte, rom.PRGSize)
+	_, err = io.ReadFull(file, rom.PRGData)
+	if err != nil {
+		fmt.Println(err)
+		return &rom, err
+	}
 
 	return &rom, err
 }
@@ -158,26 +185,35 @@ func printRom(rom *ROM) {
 	fmt.Printf("%+v\n", rom)
 }
 
-func main() {
-	cpu := NewCPU()
-	cpu.Memory[0] = 0x29
-	cpu.Print()
-	cpu.Exec()
-	fmt.Printf("Memory: %d\n", uint(cpu.Memory[0]))
-	cpu.Print()
-	fmt.Println("Hello Nintendo World")
-
+func loadTestRom(cpu *CPU) {
 	// Slurp file into memory
-	romFile, err := ioutil.ReadFile("nestest.nes")
+	romFile, err := os.Open("nestest.nes")
 
 	if err != nil {
 		panic(fmt.Sprintf("Could not read rom file!"))
 	}
 
 	rom, err := parseRom(romFile)
+
 	if err != nil {
 		fmt.Println("Error parsing rom")
-	} else {
-		printRom(rom)
+	}
+
+	copy(cpu.Memory[0x8000:], rom.PRGData)
+	copy(cpu.Memory[0xC000:], rom.PRGData)
+	cpu.PC = 0xC000
+	cpu.byteToFlags(0x24)
+
+}
+func main() {
+	cpu := NewCPU()
+	cpu.Print()
+	cpu.Debug = true
+	fmt.Println("Hello Nintendo World")
+
+	loadTestRom(cpu)
+
+	for i := 0; i < 1000; i++ {
+		cpu.Exec()
 	}
 }
