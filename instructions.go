@@ -1612,7 +1612,7 @@ var LSR = func(cpu *CPU, context *InstructionContext) {
 		operand = &cpu.Memory[context.Address]
 	}
 
-	cpu.CFlag = cpu.intToFlag(*operand & 0x80)
+	cpu.CFlag = cpu.intToFlag(*operand & 0x01)
 	*operand = *operand >> 1
 	cpu.setZeroAndNegativeFlags(*operand)
 }
@@ -1680,7 +1680,8 @@ var ROR = func(cpu *CPU, context *InstructionContext) {
 }
 
 var RTI = func(cpu *CPU, context *InstructionContext) {
-	cpu.byteToFlags(cpu.stackPop())
+	cpu.byteToFlags(cpu.stackPop()&0xEF | 0x20)
+	cpu.PC = cpu.stackPop16()
 }
 
 var RTS = func(cpu *CPU, context *InstructionContext) {
@@ -1742,7 +1743,6 @@ var TXA = func(cpu *CPU, context *InstructionContext) {
 
 var TXS = func(cpu *CPU, context *InstructionContext) {
 	cpu.SP = cpu.X
-	cpu.setZeroAndNegativeFlags(cpu.SP)
 }
 
 var TYA = func(cpu *CPU, context *InstructionContext) {
@@ -1775,10 +1775,8 @@ func branchRelative(cpu *CPU, context *InstructionContext) {
 }
 
 func compare(cpu *CPU, register byte, operand byte) {
-	result := register - operand
-
-	cpu.CFlag = int8(result) >= 0
-	cpu.setZeroAndNegativeFlags(result)
+	cpu.CFlag = register >= operand
+	cpu.setZeroAndNegativeFlags(register - operand)
 }
 
 func decrement(cpu *CPU, target byte) byte {
