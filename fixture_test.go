@@ -17,6 +17,9 @@ func setupCpu() *CPU {
 }
 
 func TestFixtureRom(t *testing.T) {
+	var pc, a, x, y, sp, flags uint64
+	var fail = false
+
 	// Read File
 	logFile, err := os.Open("nestest.log")
 	if err != nil {
@@ -27,9 +30,8 @@ func TestFixtureRom(t *testing.T) {
 	scanner := bufio.NewScanner(logFile)
 
 	cpu := setupCpu()
+
 	for scanner.Scan() {
-		var pc, a, x, y, sp, flags uint64
-		var fail = false
 
 		line := scanner.Text()
 
@@ -87,10 +89,11 @@ func TestFixtureRom(t *testing.T) {
 			fail = true
 		}
 
+		cpu.Exec()
+
 		if fail {
 			os.Exit(1)
 		}
 
-		cpu.Exec()
 	}
 }

@@ -161,7 +161,9 @@ func context(cpu *CPU, opcode byte) *InstructionContext {
 		}
 	case IndexedIndirect:
 		intermediateAddress := (uint8(cpu.Memory[cpu.PC+1]) + cpu.X)
-		address = uint16(cpu.Memory[intermediateAddress])
+		lo := cpu.Memory[intermediateAddress]
+		hi := cpu.Memory[intermediateAddress+1]
+		address = uint16(hi)<<8 | uint16(lo)
 	case IndirectIndexed:
 		intermediateAddress := cpu.Memory[cpu.PC+1]
 		address = uint16(cpu.Memory[intermediateAddress]) + uint16(cpu.Y)
