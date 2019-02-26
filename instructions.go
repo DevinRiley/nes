@@ -58,6 +58,15 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x01,
 		Exec:                ORA,
 	},
+	0x04: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x04,
+		Exec:                NOP,
+	},
 	0x05: Instruction{
 		Bytes:               2,
 		Cycles:              3,
@@ -103,6 +112,15 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x0A,
 		Exec:                ASL,
 	},
+	0x0C: Instruction{
+		Bytes:               3,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x0C,
+		Exec:                NOP,
+	},
 	0x0D: Instruction{
 		Bytes:               3,
 		Cycles:              4,
@@ -139,6 +157,15 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x11,
 		Exec:                ORA,
 	},
+	0x14: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x14,
+		Exec:                NOP,
+	},
 	0x15: Instruction{
 		Bytes:               2,
 		Cycles:              4,
@@ -174,6 +201,24 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "ORA",
 		Opcode:              0x19,
 		Exec:                ORA,
+	},
+	0x1A: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x1A,
+		Exec:                NOP,
+	},
+	0x1C: Instruction{
+		Bytes:               3,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x1C,
+		Exec:                NOP,
 	},
 	0x1D: Instruction{
 		Bytes:               3,
@@ -310,6 +355,15 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x31,
 		Exec:                AND,
 	},
+	0x34: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x34,
+		Exec:                NOP,
+	},
 	0x35: Instruction{
 		Bytes:               2,
 		Cycles:              4,
@@ -346,6 +400,24 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x39,
 		Exec:                AND,
 	},
+	0x3A: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x3A,
+		Exec:                NOP,
+	},
+	0x3C: Instruction{
+		Bytes:               3,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x3C,
+		Exec:                NOP,
+	},
 	0x3D: Instruction{
 		Bytes:               3,
 		Cycles:              4,
@@ -381,6 +453,15 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "EOR",
 		Opcode:              0x41,
 		Exec:                EOR,
+	},
+	0x44: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x44,
+		Exec:                NOP,
 	},
 	0x45: Instruction{
 		Bytes:               2,
@@ -472,6 +553,15 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x51,
 		Exec:                EOR,
 	},
+	0x54: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x54,
+		Exec:                NOP,
+	},
 	0x55: Instruction{
 		Bytes:               2,
 		Cycles:              4,
@@ -508,6 +598,24 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x59,
 		Exec:                EOR,
 	},
+	0x5A: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x5A,
+		Exec:                NOP,
+	},
+	0x5C: Instruction{
+		Bytes:               3,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x5C,
+		Exec:                NOP,
+	},
 	0x5D: Instruction{
 		Bytes:               3,
 		Cycles:              4,
@@ -543,6 +651,15 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "ADC",
 		Opcode:              0x61,
 		Exec:                ADC,
+	},
+	0x64: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x64,
+		Exec:                NOP,
 	},
 	0x65: Instruction{
 		Bytes:               2,
@@ -634,6 +751,15 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x71,
 		Exec:                ADC,
 	},
+	0x74: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x74,
+		Exec:                NOP,
+	},
 	0x75: Instruction{
 		Bytes:               2,
 		Cycles:              4,
@@ -670,6 +796,24 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x79,
 		Exec:                ADC,
 	},
+	0x7A: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x7A,
+		Exec:                NOP,
+	},
+	0x7C: Instruction{
+		Bytes:               3,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x7C,
+		Exec:                NOP,
+	},
 	0x7D: Instruction{
 		Bytes:               3,
 		Cycles:              4,
@@ -687,6 +831,15 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "ROR",
 		Opcode:              0x7E,
 		Exec:                ROR,
+	},
+	0x80: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0x80,
+		Exec:                NOP,
 	},
 	0x81: Instruction{
 		Bytes:               2,
@@ -1174,6 +1327,15 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0x90,
 		Exec:                CMP,
 	},
+	0xD4: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0xD4,
+		Exec:                NOP,
+	},
 	0xD5: Instruction{
 		Bytes:               2,
 		Cycles:              4,
@@ -1209,6 +1371,24 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "CMP",
 		Opcode:              0xD9,
 		Exec:                CMP,
+	},
+	0xDA: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0xDA,
+		Exec:                NOP,
+	},
+	0xDC: Instruction{
+		Bytes:               3,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0xDC,
+		Exec:                NOP,
 	},
 	0xDD: Instruction{
 		Bytes:               3,
@@ -1345,6 +1525,15 @@ var instructionMap = map[uint8]Instruction{
 		Opcode:              0xF1,
 		Exec:                SBC,
 	},
+	0xF4: Instruction{
+		Bytes:               2,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0xF4,
+		Exec:                NOP,
+	},
 	0xF5: Instruction{
 		Bytes:               2,
 		Cycles:              4,
@@ -1371,6 +1560,24 @@ var instructionMap = map[uint8]Instruction{
 		Assembly:            "SBC",
 		Opcode:              0xF9,
 		Exec:                SBC,
+	},
+	0xFA: Instruction{
+		Bytes:               1,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0xFA,
+		Exec:                NOP,
+	},
+	0xFC: Instruction{
+		Bytes:               3,
+		Cycles:              2,
+		AddCycleOnPageCross: false,
+		AddressingMode:      Implied,
+		Assembly:            "NOP",
+		Opcode:              0xFC,
+		Exec:                NOP,
 	},
 	0xFD: Instruction{
 		Bytes:               3,
@@ -1427,22 +1634,22 @@ var ADC = func(cpu *CPU, context *InstructionContext) {
 }
 
 var ASL = func(cpu *CPU, context *InstructionContext) {
-	var operand byte
-
-	if cpu.A&0x80 != 0 {
-		cpu.CFlag = true
-	} else {
-		cpu.CFlag = false
-	}
+	var operand *byte
 
 	if context.AddressingMode == Accumulator {
-		operand = cpu.A
+		operand = &cpu.A
 	} else {
-		operand = cpu.Memory[context.Address]
+		operand = &cpu.Memory[context.Address]
 	}
 
-	cpu.A = operand << 1
-	cpu.setZeroAndNegativeFlags(cpu.A)
+	if *operand&0x80 == 0 {
+		cpu.CFlag = false
+	} else {
+		cpu.CFlag = true
+	}
+
+	*operand = *operand << 1
+	cpu.setZeroAndNegativeFlags(*operand)
 }
 
 var BCC = func(cpu *CPU, context *InstructionContext) {

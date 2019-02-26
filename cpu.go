@@ -165,8 +165,12 @@ func context(cpu *CPU, opcode byte) *InstructionContext {
 		hi := cpu.Memory[intermediateAddress+1]
 		address = uint16(hi)<<8 | uint16(lo)
 	case IndirectIndexed:
-		intermediateAddress := cpu.Memory[cpu.PC+1]
-		address = uint16(cpu.Memory[intermediateAddress]) + uint16(cpu.Y)
+		zeroPageAddress := cpu.Memory[cpu.PC+1]
+		lo := cpu.Memory[zeroPageAddress]
+		hi := cpu.Memory[zeroPageAddress+1]
+		intermediateAddress := uint16(hi)<<8 | uint16(lo)
+		address = intermediateAddress + uint16(cpu.Y)
+
 		if (address & 0x00FF) < uint16(cpu.Y) {
 			pageCrossed = true
 		}
